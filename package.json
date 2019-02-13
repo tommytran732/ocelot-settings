@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "tsc && tslint src/*"
+  },
+  "devDependencies": {
+    "@types/node": "^11.9.2",
+    "tslint": "5.12.1",
+    "typescript": "^3.3.3"
+  }
+}

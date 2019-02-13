@@ -1,0 +1,16 @@
+{
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "pretty": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "inlineSourceMap": true,
+    "module": "commonjs",
+    "outDir": "./dist",
+    "lib": ["es2018", "dom"],
+    "target": "es6"
+  }
+}
