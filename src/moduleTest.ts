@@ -1,7 +1,7 @@
 (() => {
   return {
     moduleTest: () => {
-      return 'module successfully loaded';
+      return 'Hello World!';
     }
   };
-})();
+})() // tslint:disable-line:semicolon
