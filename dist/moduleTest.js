@@ -1,7 +1,7 @@
-(() => {
+function moduleTest() {
     return {
         moduleTest: () => {
-            return 'Hello World!';
+            return 'Module loaded successfully.';
         }
     };
-})();
+}
