@@ -1,5 +1,5 @@
 {
   moduleTest: function() {
-    return "module successfully loaded";
+    return 'Module successfully loaded.';
   }
 }
