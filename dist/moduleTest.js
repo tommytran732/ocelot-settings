@@ -1,7 +1,7 @@
 function moduleTest() {
     return {
         moduleTest: () => {
-            return 'Module loaded successfully.';
+            return 'Module successfully loaded.';
         }
     };
 }
