@@ -1,7 +1,5 @@
-function moduleTest() {
-    return {
-        moduleTest: () => {
-            return 'Module successfully loaded.';
-        }
-    };
+{
+  moduleTest: () => {
+    return 'Module successfully loaded.';
+  }
 }
