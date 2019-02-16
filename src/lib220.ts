@@ -1,4 +1,4 @@
-function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
+function lib220(config) {
   function hexColorChannel(n: number): string {
     let v = (Math.floor(n * 255)).toString(16);
     if (v.length < 2) { v = '0' + v; }
@@ -287,7 +287,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
         }
         assertValidCoordinate(x, y);
         const index = 4 * (y * w + x),
-              p = stopifyArray([
+              p = config.stopifyArray([
                 data[index] / 255.0,
                 data[index + 1] / 255.0,
                 data[index + 2] / 255.0
@@ -309,7 +309,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
       if (typeof document === 'undefined') {
         return defaultOutput;
       }
-      const runnerResult = getRunner();
+      const runnerResult = config.getRunner();
       if (runnerResult.kind === 'error') {
         throw new Error('Program is not running');
       }
@@ -529,7 +529,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
       response.json().then((jsonObj: any) => {
         runner.runner.continueImmediate({
           type: 'normal',
-          value: stopifyObjectArrayRecur(jsonObj)
+          value: config.stopifyObjectArrayRecur(jsonObj)
         });
       }).catch(() => {
         runner.isRunning ?
@@ -546,7 +546,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
       if (typeof document === 'undefined') {
         return; // does not do anything if not run on browser
       }
-      const runnerResult = getRunner();
+      const runnerResult = config.getRunner();
       if (runnerResult.kind === 'error') {
         throw new Error('Program is not running');
       }
@@ -567,7 +567,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
       if (typeof document === 'undefined') {
         return 'user input is disabled'; // when run on GradeScope
       }
-      const runnerResult = getRunner();
+      const runnerResult = config.getRunner();
       if (runnerResult.kind === 'error') {
         throw new Error('Program is not running');
       }

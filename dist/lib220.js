@@ -1,4 +1,4 @@
-function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
+function lib220(config) {
     function hexColorChannel(n) {
         let v = (Math.floor(n * 255)).toString(16);
         if (v.length < 2) {
@@ -251,7 +251,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
                     throw new Error(`.getPixel expects 2 arguments, received ${arguments.length}`);
                 }
                 assertValidCoordinate(x, y);
-                const index = 4 * (y * w + x), p = stopifyArray([
+                const index = 4 * (y * w + x), p = config.stopifyArray([
                     data[index] / 255.0,
                     data[index + 1] / 255.0,
                     data[index + 2] / 255.0
@@ -265,7 +265,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
             if (typeof document === 'undefined') {
                 return defaultOutput;
             }
-            const runnerResult = getRunner();
+            const runnerResult = config.getRunner();
             if (runnerResult.kind === 'error') {
                 throw new Error('Program is not running');
             }
@@ -473,7 +473,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
             response.json().then((jsonObj) => {
                 runner.runner.continueImmediate({
                     type: 'normal',
-                    value: stopifyObjectArrayRecur(jsonObj)
+                    value: config.stopifyObjectArrayRecur(jsonObj)
                 });
             }).catch(() => {
                 runner.isRunning ?
@@ -490,7 +490,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
             if (typeof document === 'undefined') {
                 return;
             }
-            const runnerResult = getRunner();
+            const runnerResult = config.getRunner();
             if (runnerResult.kind === 'error') {
                 throw new Error('Program is not running');
             }
@@ -511,7 +511,7 @@ function lib220(getRunner, stopifyArray, stopifyObjectArrayRecur) {
             if (typeof document === 'undefined') {
                 return 'user input is disabled';
             }
-            const runnerResult = getRunner();
+            const runnerResult = config.getRunner();
             if (runnerResult.kind === 'error') {
                 throw new Error('Program is not running');
             }
