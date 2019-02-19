@@ -1,3 +1,4 @@
 {
-  "module": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/master/dist/trivialModule.js"
+  "module": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/master/dist/trivialModule.js",
+  "lib220": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/lib220/dist/lib220.js"
 }
