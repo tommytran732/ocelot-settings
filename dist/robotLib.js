@@ -1,7 +1,7 @@
 function robotLib(config) {
     const sslVisionId = 0, wsClient = new WebSocket('ws://localhost:8000');
-    wsClient.onerror = (e) => { config.consoleLog(`ERROR: ${JSON.stringify(e)}`); };
-    wsClient.onmessage = (m) => { config.consoleLog(m.data); };
+    wsClient.onerror = (e) => { config.console.error('Network error.'); };
+    wsClient.onmessage = (m) => { config.console.log(m.data); };
     function send(payload) {
         wsClient.send(JSON.stringify(payload));
     }
