@@ -10,4 +10,4 @@ function robotLib(config) {
             send({ x, y, theta, sslVisionId, cmd: 'MoveTo' });
         }
     };
-}
+} //# sourceURL=robotLib.js`
