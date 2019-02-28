@@ -138,6 +138,17 @@ function lib220(config) {
       this.ctx.fillRect(0, 0, this.width, this.height);
     }
 
+    public drawText(text: string, x: number, y: number, size: number) {
+      argCheck('drawText', arguments, [ 'string', 'number', 'number',
+        'number' ]);
+      if (this.ctx === undefined) {
+        return; // for node
+      }
+      this.ctx.font = `${size}px Helvetica`;
+      this.ctx.fillStyle = 'black';
+      this.ctx.fillText(text, x, y);
+    }
+
     public drawLine(x1: number, y1: number, x2: number, y2: number, col: number[]) {
       argCheck('drawLine', arguments, ['number', 'number', 'number', 'number', 'object']);
       validateColor(col);
