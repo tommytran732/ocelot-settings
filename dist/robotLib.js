@@ -5,6 +5,9 @@ function robotLib(config) {
     return {
         moveToXY: (x, y, theta) => {
             send({ x, y, theta, sslVisionId: 0, cmd: 'MoveTo' });
+        },
+        kick: () => {
+            send({ sslVisionId: 0, cmd: 'Kick' });
         }
     };
 }
