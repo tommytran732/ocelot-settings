@@ -5,10 +5,13 @@ function robotLib(config: any) {
 
   return {
     moveToXY: (x: number, y: number, theta: number) => {
-      send({x, y, theta, sslVisionId: 0, cmd: 'MoveTo'});
+      send({x, y, theta, sslVisionId: 0});
     },
     kick: () => {
-      send({sslVisionId: 0, cmd: 'Kick'});
+      send({sslVisionId: 0, kick: true});
+    },
+    halt: () => {
+      send({sslVisionId: 0, halt: true});
     }
   };
 }
