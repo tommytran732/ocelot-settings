@@ -3,21 +3,25 @@ function robotLib(config: any) {
     config.ws.send(JSON.stringify(payload));
   }
 
-  let worldState: any;
+  let sslVisionId: number = 0,
+      worldState: any;
 
   config.ws.onmessage = (e) => {
     worldState = JSON.parse(e.data);
   };
 
   return {
+    setId: (id: number) => {
+      sslVisionId = id;
+    },
     moveToXY: (x: number, y: number, theta: number) => {
-      send({x, y, theta, sslVisionId: 0});
+      send({ x, y, theta, sslVisionId });
     },
     kick: () => {
-      send({sslVisionId: 0, kick: true});
+      send({ kick: true, sslVisionId });
     },
     halt: () => {
-      send({sslVisionId: 0, halt: true});
+      send({ halt: true, sslVisionId });
     }
   };
 }
