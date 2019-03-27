@@ -1,23 +1,51 @@
 function robotLib(config) {
-    function send(payload) {
-        config.ws.send(JSON.stringify(payload));
+    let sslVisionId = -1, worldState;
+    function checkId(id) {
+        if ((Number.isInteger(id) && (id < 0 || id > 9)) ||
+            (!Number.isInteger(id) && sslVisionId < 0)) {
+            throw Error('Please call "setId" with an integer between 0 and 9, before any robot commands.');
+        }
     }
-    let sslVisionId = 0, worldState;
+    function getRunnerResult() {
+        const runnerResult = config.getRunner();
+        if (runnerResult.kind === 'error') {
+            throw Error('Program is not running.');
+        }
+        return runnerResult.value;
+    }
+    function send(payload) {
+        return getRunnerResult().runner.pauseImmediate(() => {
+            config.ws.send(JSON.stringify(payload));
+        });
+    }
     config.ws.onmessage = (e) => {
+        const runnerResult = getRunnerResult();
         worldState = JSON.parse(e.data);
+        if (runnerResult.isRunning) {
+            runnerResult.runner.continueImmediate({
+                type: 'normal',
+                value: worldState
+            });
+        }
+        else {
+            runnerResult.onStopped();
+        }
     };
     return {
         setId: (id) => {
+            checkId(id);
             sslVisionId = id;
         },
-        moveToXY: (x, y, theta) => {
-            send({ x, y, theta, sslVisionId });
+        getWorld: () => {
+            return send({});
+        },
+        move: (x, y, theta) => {
+            checkId();
+            return send({ x, y, theta, sslVisionId });
         },
         kick: () => {
-            send({ kick: true, sslVisionId });
-        },
-        halt: () => {
-            send({ halt: true, sslVisionId });
+            checkId();
+            return send({ kick: true, sslVisionId });
         }
     };
 }
