@@ -1,6 +1,10 @@
 function robotLib(config: any) {
-  let sslVisionId: number = -1,
-      worldState: any;
+  enum Direction { Left, Right, Center }
+
+  let approach: Direction = Direction.Center,
+      sslVisionId: number = -1,
+      self: any,
+      world: any;
 
   function checkId(id?: number) {
     if ((Number.isInteger(id) && (id < 0 || id > 9)) ||
@@ -12,7 +16,7 @@ function robotLib(config: any) {
   }
 
   function getRunnerResult() {
-    const runnerResult = config.getRunner();
+    const runnerResult: any = config.getRunner();
 
     if (runnerResult.kind === 'error') {
       throw Error('Program is not running.');
@@ -27,14 +31,50 @@ function robotLib(config: any) {
     });
   }
 
-  config.ws.onmessage = (e: any) => {
-    const runnerResult = getRunnerResult();
+  function aim(direction: Direction) {
+    checkId();
 
-    worldState = JSON.parse(e.data);
+    let y: number,
+        theta: number;
+
+    switch (direction) {
+      case Direction.Left:
+        y = 180;
+        theta = Math.PI / -9;
+        break;
+      case Direction.Right:
+        y = -180;
+        theta = Math.PI / 9;
+        break;
+      default:
+        y = 0;
+        theta = 0;
+    }
+
+    approach = direction;
+
+    return send({ x: 2500, y, theta, sslVisionId });
+  }
+
+  function block(direction: Direction) {
+    checkId();
+
+    const y: number = direction === Direction.Left ? -500 :
+                      (direction === Direction.Right ? 500 : 0);
+
+    return send({ x: 4300, y, theta: Math.PI, sslVisionId });
+  }
+
+  config.ws.onmessage = (e: any) => {
+    const runnerResult: any = getRunnerResult();
+
+    world = JSON.parse(e.data);
+    self = world.ourBots[sslVisionId];
+
     if (runnerResult.isRunning) {
       runnerResult.runner.continueImmediate({
         type: 'normal',
-        value: worldState
+        value: world
       });
     } else {
       runnerResult.onStopped();
@@ -48,6 +88,46 @@ function robotLib(config: any) {
     },
     getWorld: () => {
       return send({});
+    },
+    aimLeft: () => {
+      return aim(Direction.Left);
+    },
+    aimRight: () => {
+      return aim(Direction.Right);
+    },
+    aimCenter: () => {
+      return aim(Direction.Center);
+    },
+    approach: () => {
+      checkId();
+
+      let y: number,
+          theta: number;
+
+      switch (approach) {
+        case Direction.Left:
+          y = 20;
+          theta = Math.PI / -9;
+          break;
+        case Direction.Right:
+          y = -20;
+          theta = Math.PI / 9;
+          break;
+        default:
+          y = 0;
+          theta = 0;
+      }
+
+      return send({ x: 2850, y, theta, sslVisionId });
+    },
+    blockLeft: () => {
+      return block(Direction.Left);
+    },
+    blockCenter: () => {
+      return block(Direction.Center);
+    },
+    blockRight: () => {
+      return block(Direction.Right);
     },
     move: (x: number, y: number, theta: number) => {
       checkId();
