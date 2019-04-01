@@ -1,6 +1,8 @@
 function robotLib(config: any) {
   enum Direction { Left, Right, Center }
 
+  const mQ: object[] = [];
+
   let approach: Direction = Direction.Center,
       sslVisionId: number = -1,
       self: any,
@@ -26,8 +28,12 @@ function robotLib(config: any) {
   }
 
   function send(payload: any) {
+    config.ws.send(JSON.stringify(payload));
+  }
+
+  function pauseAndSend(payload: any) {
     return getRunnerResult().runner.pauseImmediate(() => {
-      config.ws.send(JSON.stringify(payload));
+      send(payload);
     });
   }
 
@@ -53,7 +59,7 @@ function robotLib(config: any) {
 
     approach = direction;
 
-    return send({ x: 2500, y, theta, sslVisionId });
+    return pauseAndSend({ x: 2500, y, theta, sslVisionId });
   }
 
   function block(direction: Direction) {
@@ -62,7 +68,7 @@ function robotLib(config: any) {
     const y: number = direction === Direction.Left ? -500 :
                       (direction === Direction.Right ? 500 : 0);
 
-    return send({ x: 4300, y, theta: Math.PI, sslVisionId });
+    return pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
   }
 
   config.ws.onmessage = (e: any) => {
@@ -71,13 +77,17 @@ function robotLib(config: any) {
     world = JSON.parse(e.data);
     self = world.ourBots[sslVisionId];
 
-    if (runnerResult.isRunning) {
-      runnerResult.runner.continueImmediate({
-        type: 'normal',
-        value: world
-      });
+    if (mQ.length) {
+      send(mQ.shift());
     } else {
-      runnerResult.onStopped();
+      if (runnerResult.isRunning) {
+        runnerResult.runner.continueImmediate({
+          type: 'normal',
+          value: world
+        });
+      } else {
+        runnerResult.onStopped();
+      }
     }
   };
 
@@ -87,7 +97,7 @@ function robotLib(config: any) {
       sslVisionId = id;
     },
     getWorld: () => {
-      return send({});
+      return pauseAndSend({});
     },
     aimLeft: () => {
       return aim(Direction.Left);
@@ -98,7 +108,7 @@ function robotLib(config: any) {
     aimCenter: () => {
       return aim(Direction.Center);
     },
-    approach: () => {
+    shoot: () => {
       checkId();
 
       let y: number,
@@ -118,7 +128,9 @@ function robotLib(config: any) {
           theta = 0;
       }
 
-      return send({ x: 2850, y, theta, sslVisionId });
+      mQ.push({ kick: true, sslVisionId });
+
+      return pauseAndSend({ x: 2850, y, theta, sslVisionId });
     },
     blockLeft: () => {
       return block(Direction.Left);
@@ -132,11 +144,11 @@ function robotLib(config: any) {
     move: (x: number, y: number, theta: number) => {
       checkId();
       // TODO: Check args. Defaults?
-      return send({ x, y, theta, sslVisionId });
+      return pauseAndSend({ x, y, theta, sslVisionId });
     },
     kick: () => {
       checkId();
-      return send({ kick: true, sslVisionId });
+      return pauseAndSend({ kick: true, sslVisionId });
     }
   };
 }
