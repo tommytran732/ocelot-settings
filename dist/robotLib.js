@@ -23,9 +23,14 @@ function robotLib(config) {
     function send(payload) {
         config.ws.send(JSON.stringify(payload));
     }
-    function pauseAndSend(payload) {
+    function pauseAndSend(payload, delay) {
         return getRunnerResult().runner.pauseImmediate(() => {
-            send(payload);
+            if (delay) {
+                window.setTimeout(send, delay, payload);
+            }
+            else {
+                send(payload);
+            }
         });
     }
     function aim(direction) {
@@ -116,6 +121,10 @@ function robotLib(config) {
         },
         blockRight: () => {
             return block(Direction.Right);
+        },
+        delayedMove: (x, y, theta, time) => {
+            checkId();
+            return pauseAndSend({ x, y, theta, sslVisionId }, time);
         },
         move: (x, y, theta) => {
             checkId();

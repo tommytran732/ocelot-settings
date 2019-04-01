@@ -31,9 +31,13 @@ function robotLib(config: any) {
     config.ws.send(JSON.stringify(payload));
   }
 
-  function pauseAndSend(payload: any) {
+  function pauseAndSend(payload: any, delay?: number) {
     return getRunnerResult().runner.pauseImmediate(() => {
-      send(payload);
+      if (delay) {
+        window.setTimeout(send, delay, payload);
+      } else {
+        send(payload);
+      }
     });
   }
 
@@ -140,6 +144,10 @@ function robotLib(config: any) {
     },
     blockRight: () => {
       return block(Direction.Right);
+    },
+    delayedMove: (x: number, y: number, theta: number, time: number) => {
+      checkId();
+      return pauseAndSend({ x, y, theta, sslVisionId }, time);
     },
     move: (x: number, y: number, theta: number) => {
       checkId();
