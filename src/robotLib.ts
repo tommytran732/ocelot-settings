@@ -1,5 +1,5 @@
 function robotLib(config: any) {
-  enum Direction { Left, Right, Center }
+  enum Direction { Left = 1, Right, Center }
 
   const mQ: object[] = [];
 
@@ -14,6 +14,19 @@ function robotLib(config: any) {
       throw Error(
         'Please call "setId" with an integer between 0 and 9, before any robot commands.'
       );
+    }
+  }
+
+  function checkArgs(x: number, y: number, theta: number, time: number) {
+    if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
+        typeof time !== 'number') {
+      throw Error('Please pass numbers to the function.');
+    } else if (x < -4300 || x > 4300) {
+      throw Error('Stay within the field; your x-coordinate must be between -4300 & 4300.');
+    } else if (y < -2800 || y > 2800) {
+      throw Error('Stay within the field; your y-coordinate must be between -2800 & 2800.');
+    } else if (time < 0) {
+      throw Error('Please pass a nonnegative number for delay; no time travel allowed.');
     }
   }
 
@@ -75,6 +88,62 @@ function robotLib(config: any) {
     return pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
   }
 
+  function willMiss(direction: Direction) {
+    const rand = Math.random();
+
+    return ((direction === Direction.Left && approach === Direction.Right) ||
+            (direction === Direction.Right && approach === Direction.Left)) ?
+            rand < .3 : rand < .1;
+  }
+
+  function shoot(kickDirection?: Direction) {
+    checkId();
+
+    let y: number,
+        theta: number,
+        wide: boolean;
+
+    switch (approach) {
+      case Direction.Left:
+        y = 20;
+        theta = Math.PI / -9;
+        break;
+      case Direction.Right:
+        y = -20;
+        theta = Math.PI / 9;
+        break;
+      default:
+        y = 0;
+        theta = 0;
+    }
+
+    mQ.push({ x: 2850, y, theta, sslVisionId });
+
+    if (kickDirection && kickDirection !== approach) {
+      wide = willMiss(kickDirection);
+
+      switch (kickDirection) {
+        case Direction.Left:
+          y = 20;
+          theta = Math.PI / (wide ? -7 : -9);
+          break;
+        case Direction.Right:
+          y = -20;
+          theta = Math.PI / (wide ? 7 : 9);
+          break;
+        default:
+          y = 0;
+          theta = wide ? Math.PI / (approach === Direction.Left ? -7 : 7) : 0;
+      }
+
+      mQ.push({ x: 2850, y, theta, sslVisionId });
+    }
+
+    mQ.push({ kick: true, sslVisionId });
+
+    return pauseAndSend(mQ.shift());
+  }
+
   config.ws.onmessage = (e: any) => {
     const runnerResult: any = getRunnerResult();
 
@@ -113,28 +182,16 @@ function robotLib(config: any) {
       return aim(Direction.Center);
     },
     shoot: () => {
-      checkId();
-
-      let y: number,
-          theta: number;
-
-      switch (approach) {
-        case Direction.Left:
-          y = 20;
-          theta = Math.PI / -9;
-          break;
-        case Direction.Right:
-          y = -20;
-          theta = Math.PI / 9;
-          break;
-        default:
-          y = 0;
-          theta = 0;
-      }
-
-      mQ.push({ kick: true, sslVisionId });
-
-      return pauseAndSend({ x: 2850, y, theta, sslVisionId });
+      return shoot();
+    },
+    shootLeft: () => {
+      return shoot(Direction.Left);
+    },
+    shootRight: () => {
+      return shoot(Direction.Right);
+    },
+    shootCenter: () => {
+      return shoot(Direction.Center);
     },
     blockLeft: () => {
       return block(Direction.Left);
@@ -145,14 +202,18 @@ function robotLib(config: any) {
     blockRight: () => {
       return block(Direction.Right);
     },
+    blockRandom: function() {
+      const rand = Math.random();
+      return rand < .333 ? this.blockLeft() :
+        (rand < .667 ? this.blockCenter() : this.blockRight());
+    },
     delayedMove: (x: number, y: number, theta: number, time: number) => {
       checkId();
+      checkArgs(x, y, theta, time);
       return pauseAndSend({ x, y, theta, sslVisionId }, time);
     },
-    move: (x: number, y: number, theta: number) => {
-      checkId();
-      // TODO: Check args. Defaults?
-      return pauseAndSend({ x, y, theta, sslVisionId });
+    move: function(x: number, y: number, theta: number) {
+      return this.delayedMove(x, y, theta, 0);
     },
     kick: () => {
       checkId();
