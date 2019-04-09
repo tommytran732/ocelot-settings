@@ -144,25 +144,28 @@ function robotLib(config: any) {
     return pauseAndSend(mQ.shift());
   }
 
-  config.ws.onmessage = (e: any) => {
-    const runnerResult: any = getRunnerResult();
+  // TODO: Guard to prevent Ocelot-beta crash while it doesn't support WS.
+  if (config.ws) {
+    config.ws.onmessage = (e: any) => {
+      const runnerResult: any = getRunnerResult();
 
-    world = JSON.parse(e.data);
-    self = world.ourBots[sslVisionId];
+      world = JSON.parse(e.data);
+      self = world.ourBots[sslVisionId];
 
-    if (mQ.length) {
-      send(mQ.shift());
-    } else {
-      if (runnerResult.isRunning) {
-        runnerResult.runner.continueImmediate({
-          type: 'normal',
-          value: world
-        });
+      if (mQ.length) {
+        send(mQ.shift());
       } else {
-        runnerResult.onStopped();
+        if (runnerResult.isRunning) {
+          runnerResult.runner.continueImmediate({
+            type: 'normal',
+            value: world
+          });
+        } else {
+          runnerResult.onStopped();
+        }
       }
-    }
-  };
+    };
+  }
 
   return {
     setId: (id: number) => {

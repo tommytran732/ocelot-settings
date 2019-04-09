@@ -116,25 +116,27 @@ function robotLib(config) {
         mQ.push({ kick: true, sslVisionId });
         return pauseAndSend(mQ.shift());
     }
-    config.ws.onmessage = (e) => {
-        const runnerResult = getRunnerResult();
-        world = JSON.parse(e.data);
-        self = world.ourBots[sslVisionId];
-        if (mQ.length) {
-            send(mQ.shift());
-        }
-        else {
-            if (runnerResult.isRunning) {
-                runnerResult.runner.continueImmediate({
-                    type: 'normal',
-                    value: world
-                });
+    if (config.ws) {
+        config.ws.onmessage = (e) => {
+            const runnerResult = getRunnerResult();
+            world = JSON.parse(e.data);
+            self = world.ourBots[sslVisionId];
+            if (mQ.length) {
+                send(mQ.shift());
             }
             else {
-                runnerResult.onStopped();
+                if (runnerResult.isRunning) {
+                    runnerResult.runner.continueImmediate({
+                        type: 'normal',
+                        value: world
+                    });
+                }
+                else {
+                    runnerResult.onStopped();
+                }
             }
-        }
-    };
+        };
+    }
     return {
         setId: (id) => {
             checkId(id);
