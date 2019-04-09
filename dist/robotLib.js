@@ -141,6 +141,7 @@ function robotLib(config) {
         setId: (id) => {
             checkId(id);
             sslVisionId = id;
+            pauseAndSend({});
         },
         getWorld: () => {
             return pauseAndSend({});
@@ -187,6 +188,18 @@ function robotLib(config) {
         },
         move: function (x, y, theta) {
             return this.delayedMove(x, y, theta, 0);
+        },
+        moveXY: function (x, y) {
+            return this.move(x, y, self.pTheta, 0);
+        },
+        moveX: function (x) {
+            return this.moveXY(x, self.pY);
+        },
+        moveY: function (y) {
+            return this.moveXY(self.pX, y);
+        },
+        rotate: function (theta) {
+            return this.move(self.pX, self.pY, theta, 0);
         },
         kick: () => {
             checkId();
