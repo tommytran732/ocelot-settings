@@ -1,0 +1,83 @@
+// Get the world state.
+const r = require('robotLib');
+console.log(r.getWorld());
+
+// Move to a point.
+const r = require('robotLib');
+r.setId(0);
+r.move(3000,-500,Math.PI);
+
+// Move to successive points.
+const r = require('robotLib');
+r.setId(0);
+r.move(3000,-500,Math.PI);
+r.move(0,0,0);
+r.move(-1000,500,-Math.PI);
+
+// Move to the same point.
+const r = require('robotLib');
+r.setId(0);
+r.move(0,0,0);
+r.move(0,0,0);
+
+// Rotate to Math.PI then to 0 (360).
+const r = require('robotLib');
+r.setId(0);
+r.rotate(Math.PI);
+r.rotate(0);
+
+// Move with set angle.
+const r = require('robotLib');
+r.setId(0);
+r.moveXY(1000,1000);
+r.moveX(0);
+r.moveY(0);
+
+// Finite Loop.
+const r = require('robotLib');
+r.setId(0);
+for(let i = 0; i < 3; i += 1) {
+  r.moveXY(100,100);
+  r.moveXY(-100,100);
+  r.moveXY(-100,-100);
+  r.moveXY(100,-100);
+}
+
+// Striker I.
+const r = require('robotLib');
+r.setId(0);
+r.aimLeft();
+r.aimRight();
+r.aimCenter();
+r.aimRight();
+r.aimLeft();
+r.shoot();
+
+// Striker II.
+const r = require('robotLib');
+r.setId(0);
+r.aimCenter();
+r.aimLeft();
+r.aimRight();
+r.shootCenter(); // Chance of miss.
+
+const r = require('robotLib');
+r.setId(0);
+r.aimLeft();
+r.shootRight(); // Greater chance of miss.
+
+// Goalie I
+const r = require('robotLib');
+r.setId(1);
+const world = r.getWorld();
+let them = world.ourBots[0];
+
+while(true) {
+  if (them.pY > 20 && them.pX < 2800) {
+    them = r.blockLeft().ourBots[0];
+  } else if (them.pY < -20 && them.pX < 2800) {
+    them = r.blockRight().ourBots[0];
+  } else if (them.pX < 2800) {
+    them = r.blockCenter().ourBots[0];
+  }
+}
