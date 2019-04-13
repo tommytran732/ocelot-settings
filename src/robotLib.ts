@@ -40,11 +40,11 @@ function robotLib(config: any) {
     return runnerResult.value;
   }
 
-  function send(payload: any) {
+  function send(payload: object) {
     config.ws.send(JSON.stringify(payload));
   }
 
-  function pauseAndSend(payload: any, delay?: number) {
+  function pauseAndSend(payload: object, delay?: number) {
     return getRunnerResult().runner.pauseImmediate(() => {
       if (delay) {
         window.setTimeout(send, delay, payload);
@@ -150,7 +150,7 @@ function robotLib(config: any) {
       const runnerResult: any = getRunnerResult();
 
       world = JSON.parse(e.data);
-      self = world.ourBots[sslVisionId];
+      self = world.ourBots.find(bot => bot.id === sslVisionId);
 
       if (mQ.length) {
         send(mQ.shift());

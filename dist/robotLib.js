@@ -120,7 +120,7 @@ function robotLib(config) {
         config.ws.onmessage = (e) => {
             const runnerResult = getRunnerResult();
             world = JSON.parse(e.data);
-            self = world.ourBots[sslVisionId];
+            self = world.ourBots.find(bot => bot.id === sslVisionId);
             if (mQ.length) {
                 send(mQ.shift());
             }
