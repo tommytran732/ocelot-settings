@@ -61,6 +61,7 @@ r.aimLeft();
 r.aimRight();
 r.shootCenter(); // Chance of miss.
 
+// Striker III
 const r = require('robotLib');
 r.setId(0);
 r.aimLeft();
@@ -73,11 +74,39 @@ const world = r.getWorld();
 let them = world.ourBots[0];
 
 while(true) {
+  if (them.pX < 2800) {
+    them = r.blockRandom().ourBots[0];
+  }
+}
+
+// Goalie II
+const r = require('robotLib');
+r.setId(1);
+const world = r.getWorld();
+let them = world.ourBots[0];
+
+while(true) {
   if (them.pY > 20 && them.pX < 2800) {
     them = r.blockLeft().ourBots[0];
   } else if (them.pY < -20 && them.pX < 2800) {
     them = r.blockRight().ourBots[0];
   } else if (them.pX < 2800) {
+    them = r.blockCenter().ourBots[0];
+  }
+}
+
+// Goalie III
+const r = require('robotLib');
+r.setId(1);
+const world = r.getWorld();
+let them = world.ourBots[0];
+
+while(true) {
+  if (them.pTheta < -.2) {
+    them = r.blockLeft().ourBots[0];
+  } else if (them.pTheta > .2) {
+    them = r.blockRight().ourBots[0];
+  } else {
     them = r.blockCenter().ourBots[0];
   }
 }
