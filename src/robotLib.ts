@@ -10,9 +10,7 @@ function robotLib(config: any) {
 
   function checkId(id: number = sslVisionId) {
     if (!Number.isInteger(id) || id < 0 || id > 9) {
-      throw Error(
-        'Please call "setId" with a robot number, before any robot commands.'
-      );
+      throw Error(`Invalid robot number: ${id}.`);
     }
   }
 
@@ -49,7 +47,7 @@ function robotLib(config: any) {
     }
   }
 
-  function resume(value: any, isError: boolean = false) {
+  function resume(value: any = world, isError: boolean = false) {
     const runnerResult: any = getRunnerResult();
 
     if (runnerResult.isRunning) {
@@ -169,18 +167,16 @@ function robotLib(config: any) {
   // TODO: Guard to prevent Ocelot-beta crash while it doesn't support WS.
   if (config.ws) {
     config.ws.onmessage = (e: any) => {
-      world = JSON.parse(e.data);
-
-      try {
-        self = getRobot();
-      } catch (e) {
-        resume(e, true);
-      }
-
       if (mQ.length) {
         send(mQ.shift());
       } else {
-        resume(world);
+        world = JSON.parse(e.data);
+        try {
+          self = sslVisionId < 0 ? self : getRobot();
+          resume();
+        } catch (e) {
+          resume(e, true);
+        }
       }
     };
   }

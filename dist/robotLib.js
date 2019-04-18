@@ -9,7 +9,7 @@ function robotLib(config) {
     let approach = Direction.Center, sslVisionId = -1, self, world;
     function checkId(id = sslVisionId) {
         if (!Number.isInteger(id) || id < 0 || id > 9) {
-            throw Error('Please call "setId" with a robot number, before any robot commands.');
+            throw Error(`Invalid robot number: ${id}.`);
         }
     }
     function checkArgs(x, y, theta, time) {
@@ -45,7 +45,7 @@ function robotLib(config) {
             return botFound;
         }
     }
-    function resume(value, isError = false) {
+    function resume(value = world, isError = false) {
         const runnerResult = getRunnerResult();
         if (runnerResult.isRunning) {
             runnerResult.runner.continueImmediate({
@@ -140,18 +140,18 @@ function robotLib(config) {
     }
     if (config.ws) {
         config.ws.onmessage = (e) => {
-            world = JSON.parse(e.data);
-            try {
-                self = getRobot();
-            }
-            catch (e) {
-                resume(e, true);
-            }
             if (mQ.length) {
                 send(mQ.shift());
             }
             else {
-                resume(world);
+                world = JSON.parse(e.data);
+                try {
+                    self = sslVisionId < 0 ? self : getRobot();
+                    resume();
+                }
+                catch (e) {
+                    resume(e, true);
+                }
             }
         };
     }
