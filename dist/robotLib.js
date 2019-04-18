@@ -1,16 +1,15 @@
 function robotLib(config) {
     let Direction;
     (function (Direction) {
-        Direction[Direction["Left"] = 1] = "Left";
-        Direction[Direction["Right"] = 2] = "Right";
-        Direction[Direction["Center"] = 3] = "Center";
+        Direction[Direction["Left"] = 0] = "Left";
+        Direction[Direction["Right"] = 1] = "Right";
+        Direction[Direction["Center"] = 2] = "Center";
     })(Direction || (Direction = {}));
     const mQ = [];
     let approach = Direction.Center, sslVisionId = -1, self, world;
-    function checkId(id) {
-        if ((Number.isInteger(id) && (id < 0 || id > 9)) ||
-            (!Number.isInteger(id) && sslVisionId < 0)) {
-            throw Error('Please call "setId" with an integer between 0 and 9, before any robot commands.');
+    function checkId(id = sslVisionId) {
+        if (!Number.isInteger(id) || id < 0 || id > 9) {
+            throw Error('Please call "setId" with a robot number, before any robot commands.');
         }
     }
     function checkArgs(x, y, theta, time) {
@@ -31,14 +30,37 @@ function robotLib(config) {
     function getRunnerResult() {
         const runnerResult = config.getRunner();
         if (runnerResult.kind === 'error') {
-            throw Error('Program is not running.');
+            throw Error('The program is not running.');
         }
-        return runnerResult.value;
+        else {
+            return runnerResult.value;
+        }
+    }
+    function getRobot(id = sslVisionId) {
+        const botFound = world.ourBots.find(bot => bot.id === id);
+        if (!botFound) {
+            throw Error(`Robot ${id} not found.`);
+        }
+        else {
+            return botFound;
+        }
+    }
+    function resume(value, isError = false) {
+        const runnerResult = getRunnerResult();
+        if (runnerResult.isRunning) {
+            runnerResult.runner.continueImmediate({
+                type: isError ? 'exception' : 'normal',
+                stack: [], value
+            });
+        }
+        else {
+            runnerResult.onStopped();
+        }
     }
     function send(payload) {
         config.ws.send(JSON.stringify(payload));
     }
-    function pauseAndSend(payload, delay) {
+    function pauseAndSend(payload, delay = 0) {
         return getRunnerResult().runner.pauseImmediate(() => {
             if (delay) {
                 window.setTimeout(send, delay, payload);
@@ -79,7 +101,7 @@ function robotLib(config) {
             (direction === Direction.Right && approach === Direction.Left)) ?
             rand < .3 : rand < .1;
     }
-    function shoot(kickDirection) {
+    function shoot(kickDirection = approach) {
         checkId();
         let y, theta, wide;
         switch (approach) {
@@ -96,7 +118,7 @@ function robotLib(config) {
                 theta = 0;
         }
         mQ.push({ x: 2850, y, theta, sslVisionId });
-        if (kickDirection && kickDirection !== approach) {
+        if (kickDirection !== approach) {
             wide = willMiss(kickDirection);
             switch (kickDirection) {
                 case Direction.Left:
@@ -118,22 +140,18 @@ function robotLib(config) {
     }
     if (config.ws) {
         config.ws.onmessage = (e) => {
-            const runnerResult = getRunnerResult();
             world = JSON.parse(e.data);
-            self = world.ourBots.find(bot => bot.id === sslVisionId);
+            try {
+                self = getRobot();
+            }
+            catch (e) {
+                resume(e, true);
+            }
             if (mQ.length) {
                 send(mQ.shift());
             }
             else {
-                if (runnerResult.isRunning) {
-                    runnerResult.runner.continueImmediate({
-                        type: 'normal',
-                        value: world
-                    });
-                }
-                else {
-                    runnerResult.onStopped();
-                }
+                resume(world);
             }
         };
     }

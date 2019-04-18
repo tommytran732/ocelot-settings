@@ -1,5 +1,5 @@
 function robotLib(config: any) {
-  enum Direction { Left = 1, Right, Center }
+  enum Direction { Left, Right, Center }
 
   const mQ: object[] = [];
 
@@ -8,11 +8,10 @@ function robotLib(config: any) {
       self: any,
       world: any;
 
-  function checkId(id?: number) {
-    if ((Number.isInteger(id) && (id < 0 || id > 9)) ||
-        (!Number.isInteger(id) && sslVisionId < 0)) {
+  function checkId(id: number = sslVisionId) {
+    if (!Number.isInteger(id) || id < 0 || id > 9) {
       throw Error(
-        'Please call "setId" with an integer between 0 and 9, before any robot commands.'
+        'Please call "setId" with a robot number, before any robot commands.'
       );
     }
   }
@@ -34,17 +33,40 @@ function robotLib(config: any) {
     const runnerResult: any = config.getRunner();
 
     if (runnerResult.kind === 'error') {
-      throw Error('Program is not running.');
+      throw Error('The program is not running.');
+    } else {
+      return runnerResult.value;
     }
+  }
 
-    return runnerResult.value;
+  function getRobot(id: number = sslVisionId) {
+    const botFound: any = world.ourBots.find(bot => bot.id === id);
+
+    if (!botFound) {
+      throw Error(`Robot ${id} not found.`);
+    } else {
+      return botFound;
+    }
+  }
+
+  function resume(value: any, isError: boolean = false) {
+    const runnerResult: any = getRunnerResult();
+
+    if (runnerResult.isRunning) {
+      runnerResult.runner.continueImmediate({
+        type: isError ? 'exception' : 'normal',
+        stack: [], value
+      });
+    } else {
+      runnerResult.onStopped();
+    }
   }
 
   function send(payload: object) {
     config.ws.send(JSON.stringify(payload));
   }
 
-  function pauseAndSend(payload: object, delay?: number) {
+  function pauseAndSend(payload: object, delay: number = 0) {
     return getRunnerResult().runner.pauseImmediate(() => {
       if (delay) {
         window.setTimeout(send, delay, payload);
@@ -96,7 +118,7 @@ function robotLib(config: any) {
             rand < .3 : rand < .1;
   }
 
-  function shoot(kickDirection?: Direction) {
+  function shoot(kickDirection: Direction = approach) {
     checkId();
 
     let y: number,
@@ -119,7 +141,7 @@ function robotLib(config: any) {
 
     mQ.push({ x: 2850, y, theta, sslVisionId });
 
-    if (kickDirection && kickDirection !== approach) {
+    if (kickDirection !== approach) {
       wide = willMiss(kickDirection);
 
       switch (kickDirection) {
@@ -147,22 +169,18 @@ function robotLib(config: any) {
   // TODO: Guard to prevent Ocelot-beta crash while it doesn't support WS.
   if (config.ws) {
     config.ws.onmessage = (e: any) => {
-      const runnerResult: any = getRunnerResult();
-
       world = JSON.parse(e.data);
-      self = world.ourBots.find(bot => bot.id === sslVisionId);
+
+      try {
+        self = getRobot();
+      } catch (e) {
+        resume(e, true);
+      }
 
       if (mQ.length) {
         send(mQ.shift());
       } else {
-        if (runnerResult.isRunning) {
-          runnerResult.runner.continueImmediate({
-            type: 'normal',
-            value: world
-          });
-        } else {
-          runnerResult.onStopped();
-        }
+        resume(world);
       }
     };
   }
