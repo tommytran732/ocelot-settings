@@ -225,10 +225,26 @@ function robotLib(config: any) {
       return rand < .333 ? this.blockLeft() :
         (rand < .667 ? this.blockCenter() : this.blockRight());
     },
+    projectMove: (id: number, time: number) => {
+      checkId();
+      checkId(id);
+      checkArgs(0, 0, 0, time);
+
+      const bot = getRobot(id),
+            pX = bot.pX + (bot.vX * time),
+            pY = bot.pY + (bot.vY * time);
+
+      return { pX, pY };
+    },
     delayedMove: (x: number, y: number, theta: number, time: number) => {
       checkId();
       checkArgs(x, y, theta, time);
       return pauseAndSend({ x, y, theta, sslVisionId }, time);
+    },
+    distanceFrom: (x: number, y: number) => {
+      checkId();
+      // checkArgs(x, y, 0, 1);
+      return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
     },
     move: function(x: number, y: number, theta: number) {
       return this.delayedMove(x, y, theta, 0);

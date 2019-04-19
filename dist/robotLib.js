@@ -199,10 +199,21 @@ function robotLib(config) {
             return rand < .333 ? this.blockLeft() :
                 (rand < .667 ? this.blockCenter() : this.blockRight());
         },
+        projectMove: (id, time) => {
+            checkId();
+            checkId(id);
+            checkArgs(0, 0, 0, time);
+            const bot = getRobot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
+            return { pX, pY };
+        },
         delayedMove: (x, y, theta, time) => {
             checkId();
             checkArgs(x, y, theta, time);
             return pauseAndSend({ x, y, theta, sslVisionId }, time);
+        },
+        distanceFrom: (x, y) => {
+            checkId();
+            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
         move: function (x, y, theta) {
             return this.delayedMove(x, y, theta, 0);
