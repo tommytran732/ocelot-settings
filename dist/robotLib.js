@@ -1,198 +1,196 @@
 function robotLib(config) {
-    let Direction;
-    (function (Direction) {
-        Direction[Direction["Left"] = 0] = "Left";
-        Direction[Direction["Right"] = 1] = "Right";
-        Direction[Direction["Center"] = 2] = "Center";
-    })(Direction || (Direction = {}));
-    const mQ = [];
-    let approach = Direction.Center, sslVisionId = -1, self, world;
-    function checkId(id = sslVisionId) {
-        if (!Number.isInteger(id) || id < 0 || id > 9) {
-            throw Error(`Invalid robot number: ${id}.`);
+    let approach = 2, sslVisionId = -1, self, world;
+    const mQ = [], checks = {
+        id: (id = sslVisionId) => {
+            if (!Number.isInteger(id) || id < 0 || id > 9) {
+                throw Error(`Invalid robot number: ${id}.`);
+            }
+        },
+        args: (x, y, theta, time) => {
+            if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
+                typeof time !== 'number') {
+                throw Error('Please pass numbers to the function.');
+            }
+            else if (x < -4300 || x > 4300) {
+                throw Error('Stay within the field; your x-coordinate must be between -4300 & 4300.');
+            }
+            else if (y < -2800 || y > 2800) {
+                throw Error('Stay within the field; your y-coordinate must be between -2800 & 2800.');
+            }
+            else if (time < 0) {
+                throw Error('Please pass a nonnegative number for delay; no time travel allowed.');
+            }
         }
-    }
-    function checkArgs(x, y, theta, time) {
-        if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
-            typeof time !== 'number') {
-            throw Error('Please pass numbers to the function.');
-        }
-        else if (x < -4300 || x > 4300) {
-            throw Error('Stay within the field; your x-coordinate must be between -4300 & 4300.');
-        }
-        else if (y < -2800 || y > 2800) {
-            throw Error('Stay within the field; your y-coordinate must be between -2800 & 2800.');
-        }
-        else if (time < 0) {
-            throw Error('Please pass a nonnegative number for delay; no time travel allowed.');
-        }
-    }
-    function getRunnerResult() {
-        const runnerResult = config.getRunner();
-        if (runnerResult.kind === 'error') {
-            throw Error('The program is not running.');
-        }
-        else {
-            return runnerResult.value;
-        }
-    }
-    function getRobot(id = sslVisionId) {
-        const botFound = world.ourBots.find(bot => bot.id === id);
-        if (!botFound) {
-            throw Error(`Robot ${id} not found.`);
-        }
-        else {
-            return botFound;
-        }
-    }
-    function resume(value = world, isError = false) {
-        const runnerResult = getRunnerResult();
-        if (runnerResult.isRunning) {
-            runnerResult.runner.continueImmediate({
-                type: isError ? 'exception' : 'normal',
-                stack: [], value
-            });
-        }
-        else {
-            runnerResult.onStopped();
-        }
-    }
-    function send(payload) {
-        config.ws.send(JSON.stringify(payload));
-    }
-    function pauseAndSend(payload, delay = 0) {
-        return getRunnerResult().runner.pauseImmediate(() => {
-            if (delay) {
-                window.setTimeout(send, delay, payload);
+    }, gets = {
+        runnerResult: () => {
+            const runnerResult = config.getRunner();
+            if (runnerResult.kind === 'error') {
+                throw Error('The program is not running.');
             }
             else {
-                send(payload);
+                return runnerResult.value;
             }
-        });
-    }
-    function aim(direction) {
-        checkId();
-        let y, theta;
-        switch (direction) {
-            case Direction.Left:
-                y = 180;
-                theta = Math.PI / -9;
-                break;
-            case Direction.Right:
-                y = -180;
-                theta = Math.PI / 9;
-                break;
-            default:
-                y = 0;
-                theta = 0;
+        },
+        robot: (id = sslVisionId) => {
+            const botFound = world.ourBots.find(bot => bot.id === id);
+            if (!botFound) {
+                throw Error(`Robot ${id} not found.`);
+            }
+            else {
+                return botFound;
+            }
         }
-        approach = direction;
-        return pauseAndSend({ x: 2500, y, theta, sslVisionId });
-    }
-    function block(direction) {
-        checkId();
-        const y = direction === Direction.Left ? -500 :
-            (direction === Direction.Right ? 500 : 0);
-        return pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
-    }
-    function willMiss(direction) {
-        const rand = Math.random();
-        return ((direction === Direction.Left && approach === Direction.Right) ||
-            (direction === Direction.Right && approach === Direction.Left)) ?
-            rand < .3 : rand < .1;
-    }
-    function shoot(kickDirection = approach) {
-        checkId();
-        let y, theta, wide;
-        switch (approach) {
-            case Direction.Left:
-                y = 20;
-                theta = Math.PI / -9;
-                break;
-            case Direction.Right:
-                y = -20;
-                theta = Math.PI / 9;
-                break;
-            default:
-                y = 0;
-                theta = 0;
+    }, commsExec = {
+        send: (payload) => {
+            config.ws.send(JSON.stringify(payload));
+        },
+        resume: (value = world, isError = false) => {
+            const runnerResult = gets.runnerResult();
+            if (runnerResult.isRunning) {
+                runnerResult.runner.continueImmediate({
+                    type: isError ? 'exception' : 'normal',
+                    stack: [], value
+                });
+            }
+            else {
+                runnerResult.onStopped();
+            }
+        },
+        pauseAndSend: function (payload, delay = 0) {
+            return gets.runnerResult().runner.pauseImmediate(() => {
+                if (delay) {
+                    window.setTimeout(this.send, delay, payload);
+                }
+                else {
+                    this.send(payload);
+                }
+            });
         }
-        mQ.push({ x: 2850, y, theta, sslVisionId });
-        if (kickDirection !== approach) {
-            wide = willMiss(kickDirection);
-            switch (kickDirection) {
-                case Direction.Left:
-                    y = 20;
-                    theta = Math.PI / (wide ? -7 : -9);
+    }, pk = {
+        aim: (direction) => {
+            checks.id();
+            let y, theta;
+            switch (direction) {
+                case 0:
+                    y = 180;
+                    theta = Math.PI / -9;
                     break;
-                case Direction.Right:
-                    y = -20;
-                    theta = Math.PI / (wide ? 7 : 9);
+                case 1:
+                    y = -180;
+                    theta = Math.PI / 9;
                     break;
                 default:
                     y = 0;
-                    theta = wide ? Math.PI / (approach === Direction.Left ? -7 : 7) : 0;
+                    theta = 0;
+            }
+            approach = direction;
+            return commsExec.pauseAndSend({ x: 2500, y, theta, sslVisionId });
+        },
+        block: (direction) => {
+            checks.id();
+            const y = direction === 0 ? -500 :
+                (direction === 1 ? 500 : 0);
+            return commsExec.pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
+        },
+        willMiss: (direction) => {
+            const rand = Math.random();
+            return ((direction === 0 && approach === 1) ||
+                (direction === 1 && approach === 0)) ?
+                rand < .3 : rand < .1;
+        },
+        shoot: function (kickDirection = approach) {
+            checks.id();
+            let y, theta, wide;
+            switch (approach) {
+                case 0:
+                    y = 20;
+                    theta = Math.PI / -9;
+                    break;
+                case 1:
+                    y = -20;
+                    theta = Math.PI / 9;
+                    break;
+                default:
+                    y = 0;
+                    theta = 0;
             }
             mQ.push({ x: 2850, y, theta, sslVisionId });
+            if (kickDirection !== approach) {
+                wide = this.willMiss(kickDirection);
+                switch (kickDirection) {
+                    case 0:
+                        y = 20;
+                        theta = Math.PI / (wide ? -7 : -9);
+                        break;
+                    case 1:
+                        y = -20;
+                        theta = Math.PI / (wide ? 7 : 9);
+                        break;
+                    default:
+                        y = 0;
+                        theta = wide ? Math.PI / (approach === 0 ? -7 : 7) : 0;
+                }
+                mQ.push({ x: 2850, y, theta, sslVisionId });
+            }
+            mQ.push({ kick: true, sslVisionId });
+            return commsExec.pauseAndSend(mQ.shift());
         }
-        mQ.push({ kick: true, sslVisionId });
-        return pauseAndSend(mQ.shift());
-    }
+    };
     if (config.ws) {
         config.ws.onmessage = (e) => {
             if (mQ.length) {
-                send(mQ.shift());
+                commsExec.send(mQ.shift());
             }
             else {
                 world = JSON.parse(e.data);
                 try {
-                    self = sslVisionId < 0 ? self : getRobot();
-                    resume();
+                    self = sslVisionId < 0 ? self : gets.robot();
+                    commsExec.resume();
                 }
                 catch (e) {
-                    resume(e, true);
+                    commsExec.resume(e, true);
                 }
             }
         };
     }
     return {
         setId: (id) => {
-            checkId(id);
+            checks.id(id);
             sslVisionId = id;
-            pauseAndSend({});
+            commsExec.pauseAndSend({});
         },
         getWorld: () => {
-            return pauseAndSend({});
+            return commsExec.pauseAndSend({});
         },
         aimLeft: () => {
-            return aim(Direction.Left);
+            return pk.aim(0);
         },
         aimRight: () => {
-            return aim(Direction.Right);
+            return pk.aim(1);
         },
         aimCenter: () => {
-            return aim(Direction.Center);
+            return pk.aim(2);
         },
         shoot: () => {
-            return shoot();
+            return pk.shoot();
         },
         shootLeft: () => {
-            return shoot(Direction.Left);
+            return pk.shoot(0);
         },
         shootRight: () => {
-            return shoot(Direction.Right);
+            return pk.shoot(1);
         },
         shootCenter: () => {
-            return shoot(Direction.Center);
+            return pk.shoot(2);
         },
         blockLeft: () => {
-            return block(Direction.Left);
+            return pk.block(0);
         },
         blockCenter: () => {
-            return block(Direction.Center);
+            return pk.block(2);
         },
         blockRight: () => {
-            return block(Direction.Right);
+            return pk.block(1);
         },
         blockRandom: function () {
             const rand = Math.random();
@@ -200,19 +198,18 @@ function robotLib(config) {
                 (rand < .667 ? this.blockCenter() : this.blockRight());
         },
         projectMove: (id, time) => {
-            checkId();
-            checkId(id);
-            checkArgs(0, 0, 0, time);
-            const bot = getRobot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
+            checks.id() && checks.id(id);
+            checks.args(0, 0, 0, time);
+            const bot = gets.robot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
             return { pX, pY };
         },
         delayedMove: (x, y, theta, time) => {
-            checkId();
-            checkArgs(x, y, theta, time);
-            return pauseAndSend({ x, y, theta, sslVisionId }, time);
+            checks.id();
+            checks.args(x, y, theta, time);
+            return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
         },
         distanceFrom: (x, y) => {
-            checkId();
+            checks.id();
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
         move: function (x, y, theta) {
@@ -231,8 +228,8 @@ function robotLib(config) {
             return this.move(self.pX, self.pY, theta, 0);
         },
         kick: () => {
-            checkId();
-            return pauseAndSend({ kick: true, sslVisionId });
+            checks.id();
+            return commsExec.pauseAndSend({ kick: true, sslVisionId });
         }
     };
 }

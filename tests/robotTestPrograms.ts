@@ -110,3 +110,29 @@ while(true) {
     them = r.blockCenter().ourBots[0];
   }
 }
+
+// It I
+const r = require('robotLib');
+r.setId(0);
+while(true) {
+  r.moveXY(-4000,2000);
+  r.moveXY(-4000,-2000);
+  r.moveXY(4000,-2000);
+  r.moveXY(4000,2000);
+}
+
+// Tag I
+const r = require('robotLib');
+r.setId(1);
+r.moveXY(0,0);
+let move = null;
+
+while(true) {
+  r.getWorld();
+  move = r.projectMove(0,3);
+  if(r.distanceFrom(move.pX, move.pY) < 2000) {
+    r.moveXY(move.pX, move.pY);
+  } else {
+    r.moveXY(move.pX/2,move.pY/2);
+  }
+}
