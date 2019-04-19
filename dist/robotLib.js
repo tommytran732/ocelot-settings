@@ -11,15 +11,19 @@ function robotLib(config) {
                 typeof time !== 'number') {
                 throw Error('Please pass numbers to the function.');
             }
-            else if (x < -4300 || x > 4300) {
-                throw Error('Stay within the field; your x-coordinate must be between -4300 & 4300.');
+            if (x < -4300) {
+                x = -4300;
             }
-            else if (y < -2800 || y > 2800) {
-                throw Error('Stay within the field; your y-coordinate must be between -2800 & 2800.');
+            else if (x > 4300) {
+                x = 4300;
             }
-            else if (time < 0) {
-                throw Error('Please pass a nonnegative number for delay; no time travel allowed.');
+            if (y < -2800) {
+                y = -2800;
             }
+            else if (y > 2800) {
+                y = 2800;
+            }
+            return [x, y, theta, time < 0 ? 0 : time];
         }
     }, gets = {
         runnerResult: () => {
@@ -199,17 +203,18 @@ function robotLib(config) {
         },
         projectMove: (id, time) => {
             checks.id() && checks.id(id);
-            checks.args(0, 0, 0, time);
+            time = checks.args(0, 0, 0, time)[3];
             const bot = gets.robot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
             return { pX, pY };
         },
         delayedMove: (x, y, theta, time) => {
             checks.id();
-            checks.args(x, y, theta, time);
+            [x, y, theta, time] = checks.args(x, y, theta, time);
             return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
         },
         distanceFrom: (x, y) => {
             checks.id();
+            [x, y] = checks.args(x, y, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
         move: function (x, y, theta) {
