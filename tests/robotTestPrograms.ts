@@ -114,34 +114,59 @@ while(true) {
 // It I
 const r = require('robotLib');
 r.setId(0);
+r.moveXY(4000, 2500);
 while(true) {
-  r.moveXY(-4000, 2000);
-  r.moveXY(-4000, -2000);
-  r.moveXY(4000, -2000);
-  r.moveXY(4000, 2000);
+  r.moveXY(500, 2500);
+  r.moveXY(500, -2500);
+  r.moveXY(4000, -2500);
+  r.moveXY(4000, 2500);
 }
 
-// Tag IA
+// It II
+const r = require('robotLib');
+r.setId(0);
+r.moveXY(4000, 2500);
+
+let move1 = null, move2 = null,
+    d1 = null, d2 = null;
+
+function getRandom(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+while(true) {
+  r.getWorld();
+  move1 = r.projectMove(1, 2);
+  d1 = r.distanceFrom(move1.pX, move1.pY);
+  move2 = r.projectMove(2, 2);
+  d2 = r.distanceFrom(move2.pX, move2.pY);
+
+  if (d1 < 2000 || d2 < 2000) {
+    r.moveXY(getRandom(0, 4000), getRandom(-2500, 2500));
+  }
+}
+
+// Tag I
 const r = require('robotLib');
 r.setId(1);
-r.moveXY(100, 100);
+r.moveXY(3000, 0);
 let move = null;
 
 while(true) {
   r.getWorld();
-  move = r.projectMove(0, 2); // r.projectMove(0,0);
+  move = r.projectMove(0, 0); // r.projectMove(0, 2);
   r.moveXY(move.pX, move.pY);
 }
 
-// Tag IB
+// Tag II
 const r = require('robotLib');
 r.setId(2);
-r.moveXY(-100, -100);
+r.moveXY(2500, 0);
 let move = null, d = null;
 
 while(true) {
   r.getWorld();
-  move = r.projectMove(0, 3);
+  move = r.projectMove(0, 2);
   d = r.distanceFrom(move.pX, move.pY);
   if (d < 2000) {
     r.moveXY(move.pX, move.pY);
