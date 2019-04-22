@@ -11,8 +11,8 @@ function robotLib(config) {
                 typeof time !== 'number') {
                 throw Error('Please pass numbers to the function.');
             }
-            if (x < -4300) {
-                x = -4300;
+            if (x < 100) {
+                x = 100;
             }
             else if (x > 4300) {
                 x = 4300;
