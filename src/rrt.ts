@@ -1,13 +1,36 @@
 function rrt(config) {
 
-    const lib220 = require('lib220');
+    // TODO(arjun): This is copied over, because we cannot run require('lib220').
+    // We need to figure out a better way to do this.
+    function argCheck(func: string, p: any, paramTypes: string[]): void {
+        try {
+          const n = paramTypes.length;
+          if (p.length !== n) {
+            throw new TypeError(`Invalid call to ${func}: ${n} arguments required but ${p.length} given`);
+          }
+          for (let i = 0; i < n; ++i) {
+            const t = typeof(p[i]);
+            if (t !== paramTypes[i]) {
+              throw new TypeError(`Invalid call to ${func}: argument ${i} expected ${paramTypes[i]} but ${t} given`);
+            }
+          }
+        } catch (e) {
+          if (e.toString().includes(`Invalid call to ${func}:`)) {
+            // This is one of our expected errors.
+            throw(e);
+          } else {
+            // Unknown error.
+            throw new Error(`Invalid call to ${func}: ${e}`);
+          }
+        }
+      }
 
     class Point {
         public x: number;
         public y: number;
 
         constructor(x: number, y: number) {
-        lib220.argCheck('Point constructor', arguments, ['number', 'number']);
+        argCheck('Point constructor', arguments, ['number', 'number']);
         this.x = x;
         this.y = y;
         }
@@ -18,7 +41,7 @@ function rrt(config) {
         public p2: Point;
 
         constructor(p1: Point, p2: Point) {
-        lib220.argCheck('Line constructor', arguments, ['object', 'object']);
+        argCheck('Line constructor', arguments, ['object', 'object']);
         this.p1 = p1;
         this.p2 = p2;
         }
@@ -154,17 +177,17 @@ function rrt(config) {
         Point,
         Line,
         newPoint: function(x: number, y: number): Point {
-           lib220.argCheck('Point constructor', arguments, ['number', 'number']);
+           argCheck('Point constructor', arguments, ['number', 'number']);
            return new Point(x, y);
         },
         newLine: function(p1: Point, p2: Point): Line {
-            lib220.argCheck('Line constructor', arguments, ['object', 'object']);
+            argCheck('Line constructor', arguments, ['object', 'object']);
             checkIfPoint(p1);
             checkIfPoint(p2);
             return new Line(p1, p2);
         },
         intersects: function(l1: Line, l2: Line): boolean {
-            lib220.argCheck('intersects', arguments, ['object', 'object']);
+            argCheck('intersects', arguments, ['object', 'object']);
             checkIfLine(l1);
             checkIfLine(l2);
 
