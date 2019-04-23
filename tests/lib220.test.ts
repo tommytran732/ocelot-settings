@@ -1,12 +1,12 @@
-/*
- * We use rewire since since our modules are top-lvl fn declarations that aren't exported.
- * We can't just add an export since that'll break our module loading process.
- * What rewire allows one to do is access "private" (i.e. non-exported)
- *   members of a file (which in our case is a single fn declaration) for testing w/ Jest.
- */
-const rewire = require('rewire');
-
 describe('lib220', () => {
+  /*
+   * We use rewire since since our modules are top-lvl fn declarations that aren't exported.
+   * We can't just add an export since that'll break our module loading process.
+   * What rewire allows one to do is access "private" (i.e. non-exported)
+   *   members of a file (which in our case is a single fn declaration) for testing w/ Jest.
+   */
+  const rewire = require('rewire');
+
   let lib220: any;
 
   const getRunnerMock: jest.Mock<any, any> = jest.fn(),
