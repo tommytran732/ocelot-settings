@@ -142,13 +142,11 @@ function rrt(config) {
         demoMap,
         irregularObstacleMap,
         generateHardMap,
-        Point,
-        Line,
-        newPoint: function (x, y) {
+        Point: function (x, y) {
             argCheck('Point constructor', arguments, ['number', 'number']);
             return new Point(x, y);
         },
-        newLine: function (p1, p2) {
+        Line: function (p1, p2) {
             argCheck('Line constructor', arguments, ['object', 'object']);
             checkIfPoint(p1);
             checkIfPoint(p2);
