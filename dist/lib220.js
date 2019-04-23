@@ -48,59 +48,6 @@ function lib220(config) {
             throw new TypeError(`Invalid color value`);
         }
     }
-    class Point {
-        constructor(x, y) {
-            argCheck('Point constructor', arguments, ['number', 'number']);
-            this.x = x;
-            this.y = y;
-        }
-    }
-    class Line {
-        constructor(p1, p2) {
-            argCheck('Line constructor', arguments, ['object', 'object']);
-            this.p1 = p1;
-            this.p2 = p2;
-        }
-        length() {
-            return distance(this.p1, this.p2);
-        }
-    }
-    function checkIfPoint(p) {
-        if (typeof (p) !== 'object' ||
-            typeof (p.x) !== 'number' ||
-            typeof (p.y) !== 'number') {
-            throw new TypeError(`Invalid Point`);
-        }
-    }
-    function checkIfLine(l) {
-        checkIfPoint(l.p1);
-        checkIfPoint(l.p2);
-    }
-    function perp(l) {
-        return new Point(l.p1.y - l.p2.y, l.p2.x - l.p1.x);
-    }
-    function dot(p1, p2) {
-        return p1.x * p2.x + p1.y * p2.y;
-    }
-    function minus(p1, p2) {
-        return new Point(p1.x - p2.x, p1.y - p2.y);
-    }
-    function sq(x) {
-        return x * x;
-    }
-    function distance(p1, p2) {
-        return Math.sqrt(sq(p1.x - p2.x) + sq(p1.y - p2.y));
-    }
-    function pointOnLine(p, line) {
-        const d = line.length();
-        if (d > 0) {
-            const dir = minus(line.p1, line.p2), prp = new Point(dir.y, -dir.x), projection = dot(minus(p, line.p2), dir) / d, collinear = dot(minus(p, line.p2), prp) === 0;
-            return collinear && projection >= 0 && projection <= d;
-        }
-        else {
-            return p.x === line.p1.x && p.y === line.p2.y;
-        }
-    }
     class DrawingCanvas {
         constructor(w, h) {
             this.width = 1;
@@ -325,36 +272,6 @@ function lib220(config) {
         };
     }
     return {
-        Point, Line,
-        newPoint: function (x, y) {
-            argCheck('Point constructor', arguments, ['number', 'number']);
-            return new Point(x, y);
-        },
-        newLine: function (p1, p2) {
-            argCheck('Line constructor', arguments, ['object', 'object']);
-            checkIfPoint(p1);
-            checkIfPoint(p2);
-            return new Line(p1, p2);
-        },
-        intersects: function (l1, l2) {
-            argCheck('intersects', arguments, ['object', 'object']);
-            checkIfLine(l1);
-            checkIfLine(l2);
-            if (l1.length() === 0) {
-                return pointOnLine(l1.p1, l2);
-            }
-            else if (l2.length() === 0) {
-                return pointOnLine(l2.p1, l1);
-            }
-            const n1 = perp(l1), n2 = perp(l2);
-            const d1 = dot(n1, minus(l2.p1, l1.p1)), d2 = dot(n1, minus(l2.p2, l1.p1));
-            const d3 = dot(n2, minus(l1.p1, l2.p1)), d4 = dot(n2, minus(l1.p2, l2.p1));
-            if (d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0) {
-                return pointOnLine(l1.p1, l2) || pointOnLine(l1.p2, l2) ||
-                    pointOnLine(l2.p1, l1) || pointOnLine(l2.p2, l1);
-            }
-            return (d1 * d2 <= 0 && d3 * d4 <= 0);
-        },
         DrawingCanvas,
         newCanvas: function (w, h) {
             argCheck('newCanvas', arguments, ['number', 'number']);
