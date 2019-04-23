@@ -102,7 +102,7 @@ describe('lib220', () => {
             l1 = new lib220.Line(p1, p2),
             l2 = new lib220.Line(p3, p4);
 
-      expect(lib220.intersects(l1, l2)).toBe(false);
+      expect(lib220.intersects(l1, l2)).toBe(true);
     });
 
     test('Collinear nonintersecting lines', () => {
@@ -226,7 +226,7 @@ describe('lib220', () => {
       expect(lib220.intersects(l1, l2)).toBe(true);
     });
 
-    test('Line as point, shared vertex no collision', () => {
+    test('Line as point, shared vertex collision', () => {
       const p1 = new lib220.Point(5, 5),
             p2 = new lib220.Point(5, 5),
             p3 = new lib220.Point(5, 5),
@@ -234,7 +234,7 @@ describe('lib220', () => {
             l1 = new lib220.Line(p1, p2),
             l2 = new lib220.Line(p3, p4);
 
-      expect(lib220.intersects(l1, l2)).toBe(false);
+      expect(lib220.intersects(l1, l2)).toBe(true);
     });
 
     test('Not intersection, not parallel or colinear', () => {
@@ -265,8 +265,29 @@ describe('lib220', () => {
         new lib220.Point(30, 4),
         new lib220.Point(30, 10)
       );
-
       expect(lib220.intersects(l1, l2)).toBe(false);
+    });
+
+    test('Lines touching', () => {
+      const l1 = new lib220.Line(
+        new lib220.Point(1, 1),
+        new lib220.Point(10, 10)
+      ), l2 = new lib220.Line(
+        new lib220.Point(3, 3),
+        new lib220.Point(3, 10)
+      );
+      expect(lib220.intersects(l1, l2)).toBe(true);
+    });
+
+    test('Point touching line', () => {
+      const l1 = new lib220.Line(
+        new lib220.Point(1, 1),
+        new lib220.Point(1, 1)
+      ), l2 = new lib220.Line(
+        new lib220.Point(1, 1),
+        new lib220.Point(3, 10)
+      );
+      expect(lib220.intersects(l1, l2)).toBe(true);
     });
   });
 });

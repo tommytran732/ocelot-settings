@@ -61,6 +61,9 @@ function lib220(config) {
             this.p1 = p1;
             this.p2 = p2;
         }
+        length() {
+            return distance(this.p1, this.p2);
+        }
     }
     function checkIfPoint(p) {
         if (typeof (p) !== 'object' ||
@@ -82,14 +85,17 @@ function lib220(config) {
     function minus(p1, p2) {
         return new Point(p1.x - p2.x, p1.y - p2.y);
     }
+    function sq(x) {
+        return x * x;
+    }
     function distance(p1, p2) {
-        return Math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+        return Math.sqrt(sq(p1.x - p2.x) + sq(p1.y - p2.y));
     }
     function pointOnLine(p, line) {
-        const d = distance(line.p1, line.p2);
+        const d = line.length();
         if (d > 0) {
             const dir = minus(line.p1, line.p2), prp = new Point(dir.y, -dir.x), projection = dot(minus(p, line.p2), dir) / d, collinear = dot(minus(p, line.p2), prp) === 0;
-            return collinear && projection > 0 && projection < d;
+            return collinear && projection >= 0 && projection <= d;
         }
         else {
             return p.x === line.p1.x && p.y === line.p2.y;
@@ -334,37 +340,20 @@ function lib220(config) {
             argCheck('intersects', arguments, ['object', 'object']);
             checkIfLine(l1);
             checkIfLine(l2);
-            if (distance(l1.p1, l1.p2) === 0) {
+            if (l1.length() === 0) {
                 return pointOnLine(l1.p1, l2);
             }
-            else if (distance(l2.p1, l2.p2) === 0) {
+            else if (l2.length() === 0) {
                 return pointOnLine(l2.p1, l1);
             }
-            const n1 = perp(l1), n2 = perp(l2), d1 = dot(n1, minus(l2.p1, l1.p1)), d2 = dot(n1, minus(l2.p2, l1.p1)), d3 = dot(n2, minus(l1.p1, l2.p1)), d4 = dot(n2, minus(l1.p2, l2.p1));
-            let numZeros = 0;
-            if (d1 === 0) {
-                numZeros += 1;
-            }
-            if (d2 === 0) {
-                numZeros += 1;
-            }
-            if (d3 === 0) {
-                numZeros += 1;
-            }
-            if (d4 === 0) {
-                numZeros += 1;
-            }
-            if (numZeros <= 1) {
-                const intersects1 = d1 * d2 < 0, intersects2 = d3 * d4 < 0;
-                return intersects1 && intersects2;
-            }
-            else if (numZeros === 2) {
-                return true;
-            }
-            else {
+            const n1 = perp(l1), n2 = perp(l2);
+            const d1 = dot(n1, minus(l2.p1, l1.p1)), d2 = dot(n1, minus(l2.p2, l1.p1));
+            const d3 = dot(n2, minus(l1.p1, l2.p1)), d4 = dot(n2, minus(l1.p2, l2.p1));
+            if (d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0) {
                 return pointOnLine(l1.p1, l2) || pointOnLine(l1.p2, l2) ||
                     pointOnLine(l2.p1, l1) || pointOnLine(l2.p2, l1);
             }
+            return (d1 * d2 <= 0 && d3 * d4 <= 0);
         },
         DrawingCanvas,
         newCanvas: function (w, h) {
