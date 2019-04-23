@@ -100,42 +100,46 @@ function rrt(config) {
         lines: Line[]
     };
 
-    const demoMap: Map = {
-        size: 400,
-        lines: config.stopifyArray([
-            new Line(new Point(0, 0), new Point(0, 400)),
-            new Line(new Point(400, 400), new Point(0, 400)),
-            new Line(new Point(400, 400), new Point(400, 0)),
-            new Line(new Point(400, 0), new Point(0, 0)),
-            new Line(new Point(0, 200), new Point(300, 200)),
-            new Line(new Point(0, 100), new Point(200, 100)),
-            new Line(new Point(300, 100), new Point(400, 100)),
-            new Line(new Point(100, 200), new Point(100, 300)),
-            new Line(new Point(200, 300), new Point(200, 400)),
-            new Line(new Point(300, 300), new Point(400, 300))
-        ])
-    };
+    function getDemoMap(): Map {
+        return {
+            size: 400,
+            lines: config.stopifyArray([
+                new Line(new Point(0, 0), new Point(0, 400)),
+                new Line(new Point(400, 400), new Point(0, 400)),
+                new Line(new Point(400, 400), new Point(400, 0)),
+                new Line(new Point(400, 0), new Point(0, 0)),
+                new Line(new Point(0, 200), new Point(300, 200)),
+                new Line(new Point(0, 100), new Point(200, 100)),
+                new Line(new Point(300, 100), new Point(400, 100)),
+                new Line(new Point(100, 200), new Point(100, 300)),
+                new Line(new Point(200, 300), new Point(200, 400)),
+                new Line(new Point(300, 300), new Point(400, 300))
+            ])
+        };
+    }
 
-    const irregularObstacleMap: Map = {
-        size: 400,
-        lines: config.stopifyArray([
-            new Line(new Point(0, 0), new Point(0, 400)),
-            new Line(new Point(400, 400), new Point(0, 400)),
-            new Line(new Point(400, 400), new Point(400, 0)),
-            new Line(new Point(400, 0), new Point(0, 0)),
-            new Line(new Point(100, 50), new Point(50, 100)),
-            new Line(new Point(25, 150), new Point(50, 100)),
-            new Line(new Point(25, 150), new Point(150, 160)),
-            new Line(new Point(160, 70), new Point(150, 160)),
-            new Line(new Point(160, 70), new Point(100, 50)),
-            new Line(new Point(200, 150), new Point(250, 100)),
-            new Line(new Point(250, 50), new Point(250, 100)),
-            new Line(new Point(250, 50), new Point(300, 50)),
-            new Line(new Point(280, 150), new Point(300, 50)),
-            new Line(new Point(280, 150), new Point(200, 200)),
-            new Line(new Point(200, 150), new Point(200, 200)),
-        ])
-    };
+    function getIrregularObstacleMap(): Map {
+        return {
+            size: 400,
+            lines: config.stopifyArray([
+                new Line(new Point(0, 0), new Point(0, 400)),
+                new Line(new Point(400, 400), new Point(0, 400)),
+                new Line(new Point(400, 400), new Point(400, 0)),
+                new Line(new Point(400, 0), new Point(0, 0)),
+                new Line(new Point(100, 50), new Point(50, 100)),
+                new Line(new Point(25, 150), new Point(50, 100)),
+                new Line(new Point(25, 150), new Point(150, 160)),
+                new Line(new Point(160, 70), new Point(150, 160)),
+                new Line(new Point(160, 70), new Point(100, 50)),
+                new Line(new Point(200, 150), new Point(250, 100)),
+                new Line(new Point(250, 50), new Point(250, 100)),
+                new Line(new Point(250, 50), new Point(300, 50)),
+                new Line(new Point(280, 150), new Point(300, 50)),
+                new Line(new Point(280, 150), new Point(200, 200)),
+                new Line(new Point(200, 150), new Point(200, 200)),
+            ])
+        };
+    }
 
     function drawMap(canvas: any, map: Map) {
         map.lines.forEach(line => {
@@ -171,8 +175,8 @@ function rrt(config) {
     }
 
     return {
-        demoMap,
-        irregularObstacleMap,
+        getDemoMap,
+        getIrregularObstacleMap,
         generateHardMap,
         drawMap,
         Point: function(x: number, y: number): Point {
