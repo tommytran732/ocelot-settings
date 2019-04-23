@@ -174,6 +174,7 @@ function rrt(config) {
         demoMap,
         irregularObstacleMap,
         generateHardMap,
+        drawMap,
         Point: function(x: number, y: number): Point {
            argCheck('Point constructor', arguments, ['number', 'number']);
            return new Point(x, y);
