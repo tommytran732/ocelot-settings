@@ -289,5 +289,15 @@ describe('lib220', () => {
       );
       expect(lib220.intersects(l1, l2)).toBe(true);
     });
+
+    test("Arjun's test: touching lines", () => {
+      let p1 = new lib220.Point(0, 10);
+      let p2 = new lib220.Point(20, 10);
+      let p3 = new lib220.Point(10, 10);
+      let p4 = new lib220.Point(10, 100);
+      const l1 = new lib220.Line(p1, p2);
+      const l2 = new lib220.Line(p3, p4);
+      expect(lib220.intersects(l1, l2)).toBe(true);
+    });
   });
 });
