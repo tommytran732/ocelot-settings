@@ -102,7 +102,7 @@ function rrt(config) {
 
     const demoMap: Map = {
         size: 400,
-        lines: [
+        lines: config.stopifyArray([
             new Line(new Point(0, 0), new Point(0, 400)),
             new Line(new Point(400, 400), new Point(0, 400)),
             new Line(new Point(400, 400), new Point(400, 0)),
@@ -113,12 +113,12 @@ function rrt(config) {
             new Line(new Point(100, 200), new Point(100, 300)),
             new Line(new Point(200, 300), new Point(200, 400)),
             new Line(new Point(300, 300), new Point(400, 300))
-        ]
+        ])
     };
 
     const irregularObstacleMap: Map = {
         size: 400,
-        lines: [
+        lines: config.stopifyArray([
             new Line(new Point(0, 0), new Point(0, 400)),
             new Line(new Point(400, 400), new Point(0, 400)),
             new Line(new Point(400, 400), new Point(400, 0)),
@@ -134,7 +134,7 @@ function rrt(config) {
             new Line(new Point(280, 150), new Point(300, 50)),
             new Line(new Point(280, 150), new Point(200, 200)),
             new Line(new Point(200, 150), new Point(200, 200)),
-        ]
+        ])
     };
 
     function drawMap(canvas: any, map: Map) {
@@ -167,7 +167,7 @@ function rrt(config) {
             map.push(new Line(new Point(0, y), new Point(x1, y)));
             map.push(new Line(new Point(x2, y), new Point(mapSize, y)));
         }
-        return { lines: map, size: mapSize };
+        return { lines: config.stopifyArray(map), size: mapSize };
     }
 
     return {
