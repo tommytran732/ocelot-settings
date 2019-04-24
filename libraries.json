@@ -1,4 +1,5 @@
 {
   "lib220": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/master/dist/lib220.js",
-  "oracle": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/master/dist/oracle.js"  
+  "oracle": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/master/dist/oracle.js",
+  "rrt": "https://raw.githubusercontent.com/umass-compsci220/ocelot-settings/master/dist/rrt.js"
 }
