@@ -19,6 +19,7 @@ function robotLib(config: any) {
               throw Error('Please pass numbers to the function.');
             }
 
+            // TODO: X min adjusted from -4300 for lab.
             if (x < 100) {
               x = 100;
             } else if (x > 4300) {
@@ -163,7 +164,7 @@ function robotLib(config: any) {
               mQ.push({ x: 2850, y, theta, sslVisionId });
             }
 
-            mQ.push({ kick: true, sslVisionId });
+            mQ.push({ kick: 1, sslVisionId });
 
             return commsExec.pauseAndSend(mQ.shift());
           }
@@ -265,9 +266,9 @@ function robotLib(config: any) {
     rotate: function(theta: number) {
       return this.move(self.pX, self.pY, theta, 0);
     },
-    kick: () => {
+    kick: (rate: number) => {
       checks.id();
-      return commsExec.pauseAndSend({ kick: true, sslVisionId });
+      return commsExec.pauseAndSend({ kick: rate, sslVisionId });
     }
   };
 }

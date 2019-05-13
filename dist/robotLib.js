@@ -136,7 +136,7 @@ function robotLib(config) {
                 }
                 mQ.push({ x: 2850, y, theta, sslVisionId });
             }
-            mQ.push({ kick: true, sslVisionId });
+            mQ.push({ kick: 1, sslVisionId });
             return commsExec.pauseAndSend(mQ.shift());
         }
     };
@@ -232,9 +232,9 @@ function robotLib(config) {
         rotate: function (theta) {
             return this.move(self.pX, self.pY, theta, 0);
         },
-        kick: () => {
+        kick: (rate) => {
             checks.id();
-            return commsExec.pauseAndSend({ kick: true, sslVisionId });
+            return commsExec.pauseAndSend({ kick: rate, sslVisionId });
         }
     };
 }
