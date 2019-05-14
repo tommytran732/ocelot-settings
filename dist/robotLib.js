@@ -26,6 +26,13 @@ function robotLib(config) {
             return [x, y, theta, time < 0 ? 0 : time];
         }
     }, gets = {
+        payload: (cmd) => {
+            if (cmd._fill) {
+                cmd._fill();
+                delete cmd._fill;
+            }
+            return cmd;
+        },
         runnerResult: () => {
             const runnerResult = config.getRunner();
             if (runnerResult.kind === 'error') {
@@ -139,21 +146,32 @@ function robotLib(config) {
             mQ.push({ kick: 1, sslVisionId });
             return commsExec.pauseAndSend(mQ.shift());
         }
+    }, soccer = {
+        kick: function () {
+            checks.id();
+            mQ.push({ kick: .1, sslVisionId });
+            mQ.push({ sslVisionId, _fill: function () {
+                    this.x = world.pX + (100 * Math.cos(self.pTheta - Math.PI));
+                    this.y = world.pY + (100 * Math.sin(self.pTheta - Math.PI));
+                    this.theta = self.pTheta;
+                } });
+            return commsExec.pauseAndSend(mQ.shift());
+        },
     };
     if (config.ws) {
         config.ws.onmessage = (e) => {
-            if (mQ.length) {
-                commsExec.send(mQ.shift());
-            }
-            else {
-                world = JSON.parse(e.data);
-                try {
-                    self = sslVisionId < 0 ? self : gets.robot();
+            world = JSON.parse(e.data);
+            try {
+                self = sslVisionId < 0 ? self : gets.robot();
+                if (mQ.length) {
+                    commsExec.send(gets.payload(mQ.shift()));
+                }
+                else {
                     commsExec.resume();
                 }
-                catch (e) {
-                    commsExec.resume(e, true);
-                }
+            }
+            catch (e) {
+                commsExec.resume(e, true);
             }
         };
     }
@@ -232,9 +250,8 @@ function robotLib(config) {
         rotate: function (theta) {
             return this.move(self.pX, self.pY, theta, 0);
         },
-        kick: (rate) => {
-            checks.id();
-            return commsExec.pauseAndSend({ kick: rate, sslVisionId });
+        kick: () => {
+            return soccer.kick();
         }
     };
 }

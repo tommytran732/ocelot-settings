@@ -36,6 +36,13 @@ function robotLib(config: any) {
           }
         },
         gets: any = { // Get things.
+          payload: (cmd: any) => {
+            if (cmd._fill) {
+              cmd._fill();
+              delete cmd._fill;
+            }
+            return cmd;
+          },
           runnerResult: () => {
             const runnerResult: any = config.getRunner();
 
@@ -168,21 +175,33 @@ function robotLib(config: any) {
 
             return commsExec.pauseAndSend(mQ.shift());
           }
+        },
+        soccer: any = {
+          kick: function() {
+            checks.id();
+            mQ.push({ kick: .1, sslVisionId });
+            mQ.push({ sslVisionId, _fill: function() {
+              this.x = world.pX + (100 * Math.cos(self.pTheta - Math.PI));
+              this.y = world.pY + (100 * Math.sin(self.pTheta - Math.PI));
+              this.theta = self.pTheta;
+            }});
+            return commsExec.pauseAndSend(mQ.shift());
+          },
         };
 
   // TODO: Guard to prevent Ocelot-beta crash while it doesn't support WS.
   if (config.ws) {
     config.ws.onmessage = (e: any) => {
-      if (mQ.length) {
-        commsExec.send(mQ.shift());
-      } else {
-        world = JSON.parse(e.data);
-        try {
-          self = sslVisionId < 0 ? self : gets.robot();
+      world = JSON.parse(e.data);
+      try {
+        self = sslVisionId < 0 ? self : gets.robot();
+        if (mQ.length) {
+          commsExec.send(gets.payload(mQ.shift()));
+        } else {
           commsExec.resume();
-        } catch (e) {
-          commsExec.resume(e, true);
         }
+      } catch (e) {
+        commsExec.resume(e, true);
       }
     };
   }
@@ -266,9 +285,8 @@ function robotLib(config: any) {
     rotate: function(theta: number) {
       return this.move(self.pX, self.pY, theta, 0);
     },
-    kick: (rate: number) => {
-      checks.id();
-      return commsExec.pauseAndSend({ kick: rate, sslVisionId });
+    kick: () => {
+      return soccer.kick();
     }
   };
 }
