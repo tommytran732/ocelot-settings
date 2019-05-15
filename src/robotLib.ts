@@ -177,6 +177,11 @@ function robotLib(config: any) {
           }
         },
         tag: any = { // Tag activity.
+          distance: (x: number, y: number) => {
+            checks.id();
+            [x, y] = checks.args(x, y, 0, 0);
+            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
+          },
           project: (id: number, time: number) => {
             checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
             time = checks.args(0, 0, 0, time)[3];
@@ -186,11 +191,6 @@ function robotLib(config: any) {
                   pY = bot.pY + (bot.vY * time);
 
             return { pX, pY };
-          },
-          distance: (x: number, y: number) => {
-            checks.id();
-            [x, y] = checks.args(x, y, 0, 0);
-            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
           }
         },
         soccer: any = { // Soccer activity.
@@ -287,14 +287,17 @@ function robotLib(config: any) {
     rotate: function(theta: number) {
       return this.move(self.pX, self.pY, theta, 0);
     },
-    projectMove: (id: number, time: number) => {
-      return tag.project(id, time);
-    },
     distanceFrom: (x: number, y: number) => {
       return tag.distance(x, y);
     },
+    projectMove: (id: number, time: number) => {
+      return tag.project(id, time);
+    },
     kick: () => {
       return soccer.kick();
+    },
+    shoot: () => {
+      return commsExec.pauseAndSend({ kick: 1, sslVisionId });
     }
   };
 }

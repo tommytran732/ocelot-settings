@@ -147,16 +147,16 @@ function robotLib(config) {
             return commsExec.pauseAndSend(mQ.shift());
         }
     }, tag = {
+        distance: (x, y) => {
+            checks.id();
+            [x, y] = checks.args(x, y, 0, 0);
+            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
+        },
         project: (id, time) => {
             checks.id() && checks.id(id);
             time = checks.args(0, 0, 0, time)[3];
             const bot = gets.robot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
             return { pX, pY };
-        },
-        distance: (x, y) => {
-            checks.id();
-            [x, y] = checks.args(x, y, 0, 0);
-            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         }
     }, soccer = {
         kick: function () {
@@ -251,14 +251,17 @@ function robotLib(config) {
         rotate: function (theta) {
             return this.move(self.pX, self.pY, theta, 0);
         },
-        projectMove: (id, time) => {
-            return tag.project(id, time);
-        },
         distanceFrom: (x, y) => {
             return tag.distance(x, y);
         },
+        projectMove: (id, time) => {
+            return tag.project(id, time);
+        },
         kick: () => {
             return soccer.kick();
+        },
+        shoot: () => {
+            return commsExec.pauseAndSend({ kick: 1, sslVisionId });
         }
     };
 }
