@@ -88,7 +88,7 @@ function robotLib(config: any) {
             }
           }
         },
-        pk: any = { // PK shootout activity.
+        pk: any = { // PK activity.
           aim: (direction: Direction) => {
             checks.id();
 
@@ -174,6 +174,23 @@ function robotLib(config: any) {
             mQ.push({ kick: 1, sslVisionId });
 
             return commsExec.pauseAndSend(mQ.shift());
+          }
+        },
+        tag: any = { // Tag activity.
+          project: (id: number, time: number) => {
+            checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
+            time = checks.args(0, 0, 0, time)[3];
+
+            const bot = gets.robot(id),
+                  pX = bot.pX + (bot.vX * time),
+                  pY = bot.pY + (bot.vY * time);
+
+            return { pX, pY };
+          },
+          distance: (x: number, y: number) => {
+            checks.id();
+            [x, y] = checks.args(x, y, 0, 0);
+            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
           }
         },
         soccer: any = { // Soccer activity.
@@ -271,19 +288,10 @@ function robotLib(config: any) {
       return this.move(self.pX, self.pY, theta, 0);
     },
     projectMove: (id: number, time: number) => {
-      checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
-      time = checks.args(0, 0, 0, time)[3];
-
-      const bot = gets.robot(id),
-            pX = bot.pX + (bot.vX * time),
-            pY = bot.pY + (bot.vY * time);
-
-      return { pX, pY };
+      return tag.project(id, time);
     },
     distanceFrom: (x: number, y: number) => {
-      checks.id();
-      [x, y] = checks.args(x, y, 0, 0);
-      return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
+      return tag.distance(x, y);
     },
     kick: () => {
       return soccer.kick();
