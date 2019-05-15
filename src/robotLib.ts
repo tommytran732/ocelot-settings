@@ -204,6 +204,14 @@ function robotLib(config: any) {
             }});
             return commsExec.pauseAndSend(mQ.shift());
           },
+          rotate: (theta: number) => { // TODO: Should first check distance from ball.
+            checks.args(0, 0, theta, 0);
+            return commsExec.pauseAndSend({ sslVisionId,
+              x: world.pX + (100 * Math.cos(theta)),
+              y: world.pY + (100 * Math.sin(theta)),
+              theta: theta - Math.PI
+            });
+          }
         };
 
   // TODO: Guard to prevent Ocelot-beta crash while it doesn't support WS.
@@ -295,6 +303,9 @@ function robotLib(config: any) {
     },
     kick: () => {
       return soccer.kick();
+    },
+    orient: (theta: number) => {
+      return soccer.rotate(theta);
     },
     shoot: () => {
       return commsExec.pauseAndSend({ kick: 1, sslVisionId });

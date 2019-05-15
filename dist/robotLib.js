@@ -169,6 +169,14 @@ function robotLib(config) {
                 } });
             return commsExec.pauseAndSend(mQ.shift());
         },
+        rotate: (theta) => {
+            checks.args(0, 0, theta, 0);
+            return commsExec.pauseAndSend({ sslVisionId,
+                x: world.pX + (100 * Math.cos(theta)),
+                y: world.pY + (100 * Math.sin(theta)),
+                theta: theta - Math.PI
+            });
+        }
     };
     if (config.ws) {
         config.ws.onmessage = (e) => {
@@ -259,6 +267,9 @@ function robotLib(config) {
         },
         kick: () => {
             return soccer.kick();
+        },
+        orient: (theta) => {
+            return soccer.rotate(theta);
         },
         shoot: () => {
             return commsExec.pauseAndSend({ kick: 1, sslVisionId });
