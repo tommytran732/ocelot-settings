@@ -176,7 +176,7 @@ function robotLib(config: any) {
             return commsExec.pauseAndSend(mQ.shift());
           }
         },
-        soccer: any = {
+        soccer: any = { // Soccer activity
           kick: function() {
             checks.id();
             mQ.push({ kick: .1, sslVisionId });
@@ -224,16 +224,16 @@ function robotLib(config: any) {
     aimCenter: () => {
       return pk.aim(Direction.Center);
     },
-    shoot: () => {
+    strike: () => {
       return pk.shoot();
     },
-    shootLeft: () => {
+    strikeLeft: () => {
       return pk.shoot(Direction.Left);
     },
-    shootRight: () => {
+    strikeRight: () => {
       return pk.shoot(Direction.Right);
     },
-    shootCenter: () => {
+    strikeCenter: () => {
       return pk.shoot(Direction.Center);
     },
     blockLeft: () => {

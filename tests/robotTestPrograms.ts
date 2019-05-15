@@ -51,7 +51,7 @@ r.aimRight();
 r.aimCenter();
 r.aimRight();
 r.aimLeft();
-r.shoot();
+r.strike();
 
 // Striker II.
 const r = require('robotLib');
@@ -59,13 +59,13 @@ r.setId(0);
 r.aimCenter();
 r.aimLeft();
 r.aimRight();
-r.shootCenter(); // Chance of miss.
+r.strikeCenter(); // Chance of miss.
 
 // Striker III
 const r = require('robotLib');
 r.setId(0);
 r.aimLeft();
-r.shootRight(); // Greater chance of miss.
+r.strikeRight(); // Greater chance of miss.
 
 // Goalie I
 const r = require('robotLib');

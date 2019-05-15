@@ -193,16 +193,16 @@ function robotLib(config) {
         aimCenter: () => {
             return pk.aim(2);
         },
-        shoot: () => {
+        strike: () => {
             return pk.shoot();
         },
-        shootLeft: () => {
+        strikeLeft: () => {
             return pk.shoot(0);
         },
-        shootRight: () => {
+        strikeRight: () => {
             return pk.shoot(1);
         },
-        shootCenter: () => {
+        strikeCenter: () => {
             return pk.shoot(2);
         },
         blockLeft: () => {
