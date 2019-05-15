@@ -43,15 +43,6 @@ function robotLib(config: any) {
             }
             return cmd;
           },
-          runnerResult: () => {
-            const runnerResult: any = config.getRunner();
-
-            if (runnerResult.kind === 'error') {
-              throw Error('The program is not running.');
-            } else {
-              return runnerResult.value;
-            }
-          },
           robot: (id: number = sslVisionId) => {
             const botFound: any = world.ourBots.find(bot => bot.id === id);
 
@@ -60,11 +51,29 @@ function robotLib(config: any) {
             } else {
               return botFound;
             }
+          },
+          runnerResult: () => {
+            const runnerResult: any = config.getRunner();
+
+            if (runnerResult.kind === 'error') {
+              throw Error('The program is not running.');
+            } else {
+              return runnerResult.value;
+            }
           }
         },
         commsExec: any = { // Communications & Execution.
           send: (payload: object) => {
             config.ws.send(JSON.stringify(payload));
+          },
+          pauseAndSend: function(payload: object, delay: number = 0) {
+            return gets.runnerResult().runner.pauseImmediate(() => {
+              if (delay) {
+                window.setTimeout(this.send, delay, payload);
+              } else {
+                this.send(payload);
+              }
+            });
           },
           resume: (value: any = world, isError: boolean = false) => {
             const runnerResult: any = gets.runnerResult();
@@ -77,15 +86,6 @@ function robotLib(config: any) {
             } else {
               runnerResult.onStopped();
             }
-          },
-          pauseAndSend: function(payload: object, delay: number = 0) {
-            return gets.runnerResult().runner.pauseImmediate(() => {
-              if (delay) {
-                window.setTimeout(this.send, delay, payload);
-              } else {
-                this.send(payload);
-              }
-            });
           }
         },
         pk: any = { // PK shootout activity.
@@ -176,7 +176,7 @@ function robotLib(config: any) {
             return commsExec.pauseAndSend(mQ.shift());
           }
         },
-        soccer: any = { // Soccer activity
+        soccer: any = { // Soccer activity.
           kick: function() {
             checks.id();
             mQ.push({ kick: .1, sslVisionId });
@@ -239,36 +239,21 @@ function robotLib(config: any) {
     blockLeft: () => {
       return pk.block(Direction.Left);
     },
-    blockCenter: () => {
-      return pk.block(Direction.Center);
-    },
     blockRight: () => {
       return pk.block(Direction.Right);
+    },
+    blockCenter: () => {
+      return pk.block(Direction.Center);
     },
     blockRandom: function() {
       const rand = Math.random();
       return rand < .333 ? this.blockLeft() :
         (rand < .667 ? this.blockCenter() : this.blockRight());
     },
-    projectMove: (id: number, time: number) => {
-      checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
-      time = checks.args(0, 0, 0, time)[3];
-
-      const bot = gets.robot(id),
-            pX = bot.pX + (bot.vX * time),
-            pY = bot.pY + (bot.vY * time);
-
-      return { pX, pY };
-    },
     delayedMove: (x: number, y: number, theta: number, time: number) => {
       checks.id();
       [x, y, theta, time] = checks.args(x, y, theta, time);
       return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
-    },
-    distanceFrom: (x: number, y: number) => {
-      checks.id();
-      [x, y] = checks.args(x, y, 0, 0);
-      return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
     },
     move: function(x: number, y: number, theta: number) {
       return this.delayedMove(x, y, theta, 0);
@@ -284,6 +269,21 @@ function robotLib(config: any) {
     },
     rotate: function(theta: number) {
       return this.move(self.pX, self.pY, theta, 0);
+    },
+    projectMove: (id: number, time: number) => {
+      checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
+      time = checks.args(0, 0, 0, time)[3];
+
+      const bot = gets.robot(id),
+            pX = bot.pX + (bot.vX * time),
+            pY = bot.pY + (bot.vY * time);
+
+      return { pX, pY };
+    },
+    distanceFrom: (x: number, y: number) => {
+      checks.id();
+      [x, y] = checks.args(x, y, 0, 0);
+      return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
     },
     kick: () => {
       return soccer.kick();

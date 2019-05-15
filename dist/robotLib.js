@@ -33,15 +33,6 @@ function robotLib(config) {
             }
             return cmd;
         },
-        runnerResult: () => {
-            const runnerResult = config.getRunner();
-            if (runnerResult.kind === 'error') {
-                throw Error('The program is not running.');
-            }
-            else {
-                return runnerResult.value;
-            }
-        },
         robot: (id = sslVisionId) => {
             const botFound = world.ourBots.find(bot => bot.id === id);
             if (!botFound) {
@@ -50,10 +41,29 @@ function robotLib(config) {
             else {
                 return botFound;
             }
+        },
+        runnerResult: () => {
+            const runnerResult = config.getRunner();
+            if (runnerResult.kind === 'error') {
+                throw Error('The program is not running.');
+            }
+            else {
+                return runnerResult.value;
+            }
         }
     }, commsExec = {
         send: (payload) => {
             config.ws.send(JSON.stringify(payload));
+        },
+        pauseAndSend: function (payload, delay = 0) {
+            return gets.runnerResult().runner.pauseImmediate(() => {
+                if (delay) {
+                    window.setTimeout(this.send, delay, payload);
+                }
+                else {
+                    this.send(payload);
+                }
+            });
         },
         resume: (value = world, isError = false) => {
             const runnerResult = gets.runnerResult();
@@ -66,16 +76,6 @@ function robotLib(config) {
             else {
                 runnerResult.onStopped();
             }
-        },
-        pauseAndSend: function (payload, delay = 0) {
-            return gets.runnerResult().runner.pauseImmediate(() => {
-                if (delay) {
-                    window.setTimeout(this.send, delay, payload);
-                }
-                else {
-                    this.send(payload);
-                }
-            });
         }
     }, pk = {
         aim: (direction) => {
@@ -208,32 +208,21 @@ function robotLib(config) {
         blockLeft: () => {
             return pk.block(0);
         },
-        blockCenter: () => {
-            return pk.block(2);
-        },
         blockRight: () => {
             return pk.block(1);
+        },
+        blockCenter: () => {
+            return pk.block(2);
         },
         blockRandom: function () {
             const rand = Math.random();
             return rand < .333 ? this.blockLeft() :
                 (rand < .667 ? this.blockCenter() : this.blockRight());
         },
-        projectMove: (id, time) => {
-            checks.id() && checks.id(id);
-            time = checks.args(0, 0, 0, time)[3];
-            const bot = gets.robot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
-            return { pX, pY };
-        },
         delayedMove: (x, y, theta, time) => {
             checks.id();
             [x, y, theta, time] = checks.args(x, y, theta, time);
             return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
-        },
-        distanceFrom: (x, y) => {
-            checks.id();
-            [x, y] = checks.args(x, y, 0, 0);
-            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
         move: function (x, y, theta) {
             return this.delayedMove(x, y, theta, 0);
@@ -249,6 +238,17 @@ function robotLib(config) {
         },
         rotate: function (theta) {
             return this.move(self.pX, self.pY, theta, 0);
+        },
+        projectMove: (id, time) => {
+            checks.id() && checks.id(id);
+            time = checks.args(0, 0, 0, time)[3];
+            const bot = gets.robot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
+            return { pX, pY };
+        },
+        distanceFrom: (x, y) => {
+            checks.id();
+            [x, y] = checks.args(x, y, 0, 0);
+            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
         kick: () => {
             return soccer.kick();
