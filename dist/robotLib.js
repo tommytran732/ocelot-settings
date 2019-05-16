@@ -163,8 +163,8 @@ function robotLib(config) {
             checks.id();
             mQ.push({ kick: .1, sslVisionId });
             mQ.push({ sslVisionId, _fill: function () {
-                    this.x = world.pX + (100 * Math.cos(self.pTheta - Math.PI));
-                    this.y = world.pY + (100 * Math.sin(self.pTheta - Math.PI));
+                    this.x = world.pX + (120 * Math.cos(self.pTheta - Math.PI));
+                    this.y = world.pY + (120 * Math.sin(self.pTheta - Math.PI));
                     this.theta = self.pTheta;
                 } });
             return commsExec.pauseAndSend(mQ.shift());
@@ -172,8 +172,8 @@ function robotLib(config) {
         rotate: (theta) => {
             checks.args(0, 0, theta, 0);
             return commsExec.pauseAndSend({ sslVisionId,
-                x: world.pX + (100 * Math.cos(theta)),
-                y: world.pY + (100 * Math.sin(theta)),
+                x: world.pX + (120 * Math.cos(theta)),
+                y: world.pY + (120 * Math.sin(theta)),
                 theta: theta - Math.PI
             });
         }
