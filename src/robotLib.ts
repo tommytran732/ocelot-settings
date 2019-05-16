@@ -38,7 +38,7 @@ function robotLib(config: any) {
               speed = 10;
             }
 
-            return [x, y, theta, time < 0 ? 0 : time, speed];
+            return [x, y, theta, time < 0 ? 0 : time, speed / 10];
           }
         },
         gets: any = { // Get things.
@@ -200,18 +200,22 @@ function robotLib(config: any) {
           }
         },
         soccer: any = { // Soccer activity.
-          kick: function() {
+          shoot: (kick: number = 10) => {
             checks.id();
-            mQ.push({ kick: .1, sslVisionId });
+            kick = checks.args(0, 0, 0, 0, kick)[4];
+            return commsExec.pauseAndSend({ kick, sslVisionId });
+          },
+          kick: function(speed: number = 1) {
             mQ.push({ sslVisionId, _fill: function() {
               this.x = world.pX + (120 * Math.cos(self.pTheta - Math.PI));
               this.y = world.pY + (120 * Math.sin(self.pTheta - Math.PI));
               this.theta = self.pTheta;
             }});
-            return commsExec.pauseAndSend(mQ.shift());
+            return this.shoot(speed);
           },
           rotate: (theta: number) => { // TODO: Should first check distance from ball.
-            checks.args(0, 0, theta, 0, 0);
+            checks.id();
+            theta = checks.args(0, 0, theta, 0, 0)[2];
             return commsExec.pauseAndSend({ sslVisionId,
               x: world.pX + (120 * Math.cos(theta)),
               y: world.pY + (120 * Math.sin(theta)),
@@ -283,7 +287,7 @@ function robotLib(config: any) {
     },
     delayedMove: (x: number, y: number, theta: number, time: number) => {
       checks.id();
-      [x, y, theta, time] = checks.args(x, y, theta, time);
+      [x, y, theta, time] = checks.args(x, y, theta, time, 0);
       return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
     },
     move: function(x: number, y: number, theta: number) {
@@ -307,14 +311,14 @@ function robotLib(config: any) {
     projectMove: (id: number, time: number) => {
       return tag.project(id, time);
     },
-    kick: () => {
-      return soccer.kick();
+    kick: (speed: number) => {
+      return soccer.kick(speed);
     },
     orient: (theta: number) => {
       return soccer.rotate(theta);
     },
-    shoot: () => {
-      return commsExec.pauseAndSend({ kick: 1, sslVisionId });
+    shoot: (speed: number) => {
+      return soccer.shoot(speed);
     }
   };
 }
