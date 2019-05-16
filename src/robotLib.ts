@@ -8,11 +8,6 @@ function robotLib(config: any) {
 
   const mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
-          id: (id: number = sslVisionId) => {
-            if (!Number.isInteger(id) || id < 0 || id > 9) {
-              throw Error(`Invalid robot number: ${id}.`);
-            }
-          },
           args: (x: number, y: number, theta: number, time: number, speed: number) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number' || typeof speed !== 'number') {
@@ -39,6 +34,11 @@ function robotLib(config: any) {
             }
 
             return [x, y, theta, time < 0 ? 0 : time, speed / 10];
+          },
+          id: (id: number = sslVisionId) => {
+            if (!Number.isInteger(id) || id < 0 || id > 9) {
+              throw Error(`Invalid robot number: ${id}.`);
+            }
           }
         },
         gets: any = { // Get things.
@@ -127,6 +127,11 @@ function robotLib(config: any) {
 
             return commsExec.pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
           },
+          blockRandom: function() {
+            const rand = Math.random();
+            return rand < .333 ? this.block(Direction.Left) :
+              (rand < .667 ? this.block(Direction.Center) : this.block(Direction.Right));
+          },
           willMiss: (direction: Direction) => {
             const rand = Math.random();
 
@@ -187,6 +192,11 @@ function robotLib(config: any) {
             checks.id();
             [x, y] = checks.args(x, y, 0, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
+          },
+          move: (x: number, y: number, theta: number, time: number) => {
+            checks.id();
+            [x, y, theta, time] = checks.args(x, y, theta, time, 0);
+            return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
           },
           project: (id: number, time: number) => {
             checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
@@ -280,15 +290,11 @@ function robotLib(config: any) {
     blockCenter: () => {
       return pk.block(Direction.Center);
     },
-    blockRandom: function() {
-      const rand = Math.random();
-      return rand < .333 ? this.blockLeft() :
-        (rand < .667 ? this.blockCenter() : this.blockRight());
+    blockRandom: () => {
+      return pk.blockRandom();
     },
     delayedMove: (x: number, y: number, theta: number, time: number) => {
-      checks.id();
-      [x, y, theta, time] = checks.args(x, y, theta, time, 0);
-      return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
+      return tag.move(x, y, theta, time);
     },
     move: function(x: number, y: number, theta: number) {
       return this.delayedMove(x, y, theta, 0);

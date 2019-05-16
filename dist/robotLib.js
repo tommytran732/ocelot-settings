@@ -1,11 +1,6 @@
 function robotLib(config) {
     let approach = 2, sslVisionId = -1, self, world;
     const mQ = [], checks = {
-        id: (id = sslVisionId) => {
-            if (!Number.isInteger(id) || id < 0 || id > 9) {
-                throw Error(`Invalid robot number: ${id}.`);
-            }
-        },
         args: (x, y, theta, time, speed) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number' || typeof speed !== 'number') {
@@ -30,6 +25,11 @@ function robotLib(config) {
                 speed = 10;
             }
             return [x, y, theta, time < 0 ? 0 : time, speed / 10];
+        },
+        id: (id = sslVisionId) => {
+            if (!Number.isInteger(id) || id < 0 || id > 9) {
+                throw Error(`Invalid robot number: ${id}.`);
+            }
         }
     }, gets = {
         payload: (cmd) => {
@@ -109,6 +109,11 @@ function robotLib(config) {
                 (direction === 1 ? 500 : 0);
             return commsExec.pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
         },
+        blockRandom: function () {
+            const rand = Math.random();
+            return rand < .333 ? this.block(0) :
+                (rand < .667 ? this.block(2) : this.block(1));
+        },
         willMiss: (direction) => {
             const rand = Math.random();
             return ((direction === 0 && approach === 1) ||
@@ -157,6 +162,11 @@ function robotLib(config) {
             checks.id();
             [x, y] = checks.args(x, y, 0, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
+        },
+        move: (x, y, theta, time) => {
+            checks.id();
+            [x, y, theta, time] = checks.args(x, y, theta, time, 0);
+            return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
         },
         project: (id, time) => {
             checks.id() && checks.id(id);
@@ -244,15 +254,11 @@ function robotLib(config) {
         blockCenter: () => {
             return pk.block(2);
         },
-        blockRandom: function () {
-            const rand = Math.random();
-            return rand < .333 ? this.blockLeft() :
-                (rand < .667 ? this.blockCenter() : this.blockRight());
+        blockRandom: () => {
+            return pk.blockRandom();
         },
         delayedMove: (x, y, theta, time) => {
-            checks.id();
-            [x, y, theta, time] = checks.args(x, y, theta, time, 0);
-            return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
+            return tag.move(x, y, theta, time);
         },
         move: function (x, y, theta) {
             return this.delayedMove(x, y, theta, 0);
