@@ -13,9 +13,9 @@ function robotLib(config: any) {
               throw Error(`Invalid robot number: ${id}.`);
             }
           },
-          args: (x: number, y: number, theta: number, time: number) => {
+          args: (x: number, y: number, theta: number, time: number, speed: number) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
-                typeof time !== 'number') {
+                typeof time !== 'number' || typeof speed !== 'number') {
               throw Error('Please pass numbers to the function.');
             }
 
@@ -32,7 +32,13 @@ function robotLib(config: any) {
               y = 2800;
             }
 
-            return [x, y, theta, time < 0 ? 0 : time];
+            if (speed < 1) {
+              speed = 1;
+            } else if (speed > 10) {
+              speed = 10;
+            }
+
+            return [x, y, theta, time < 0 ? 0 : time, speed];
           }
         },
         gets: any = { // Get things.
@@ -179,12 +185,12 @@ function robotLib(config: any) {
         tag: any = { // Tag activity.
           distance: (x: number, y: number) => {
             checks.id();
-            [x, y] = checks.args(x, y, 0, 0);
+            [x, y] = checks.args(x, y, 0, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
           },
           project: (id: number, time: number) => {
             checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
-            time = checks.args(0, 0, 0, time)[3];
+            time = checks.args(0, 0, 0, time, 0)[3];
 
             const bot = gets.robot(id),
                   pX = bot.pX + (bot.vX * time),
@@ -205,7 +211,7 @@ function robotLib(config: any) {
             return commsExec.pauseAndSend(mQ.shift());
           },
           rotate: (theta: number) => { // TODO: Should first check distance from ball.
-            checks.args(0, 0, theta, 0);
+            checks.args(0, 0, theta, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId,
               x: world.pX + (120 * Math.cos(theta)),
               y: world.pY + (120 * Math.sin(theta)),
