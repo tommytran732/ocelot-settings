@@ -39,6 +39,12 @@ function robotLib(config: any) {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
               throw Error(`Invalid robot number: ${id}.`);
             }
+          },
+          dist: () => {
+            if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
+                Math.pow(world.pY - self.pY, 2)) > 250) {
+              throw Error('Too far from ball; must be w/i 250 units.');
+            }
           }
         },
         gets: any = { // Get things.
@@ -199,7 +205,7 @@ function robotLib(config: any) {
             return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
           },
           project: (id: number, time: number) => {
-            checks.id() && checks.id(id); // tslint:disable-line:no-unused-expression
+            checks.id() && checks.id(id);
             time = checks.args(0, 0, 0, time, 0)[3];
 
             const bot = gets.robot(id),
@@ -211,7 +217,7 @@ function robotLib(config: any) {
         },
         soccer: any = { // Soccer activity.
           shoot: (kick: number = 10) => {
-            checks.id();
+            checks.id() && checks.dist();
             kick = checks.args(0, 0, 0, 0, kick)[4];
             return commsExec.pauseAndSend({ kick, sslVisionId });
           },
@@ -223,8 +229,8 @@ function robotLib(config: any) {
             }});
             return this.shoot(speed);
           },
-          rotate: (theta: number) => { // TODO: Should first check distance from ball.
-            checks.id();
+          rotate: (theta: number) => {
+            checks.id() && checks.dist();
             theta = checks.args(0, 0, theta, 0, 0)[2];
             return commsExec.pauseAndSend({ sslVisionId,
               x: world.pX + (120 * Math.cos(theta)),

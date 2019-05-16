@@ -30,6 +30,12 @@ function robotLib(config) {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
                 throw Error(`Invalid robot number: ${id}.`);
             }
+        },
+        dist: () => {
+            if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
+                Math.pow(world.pY - self.pY, 2)) > 250) {
+                throw Error('Too far from ball; must be w/i 250 units.');
+            }
         }
     }, gets = {
         payload: (cmd) => {
@@ -176,7 +182,7 @@ function robotLib(config) {
         }
     }, soccer = {
         shoot: (kick = 10) => {
-            checks.id();
+            checks.id() && checks.dist();
             kick = checks.args(0, 0, 0, 0, kick)[4];
             return commsExec.pauseAndSend({ kick, sslVisionId });
         },
@@ -189,7 +195,7 @@ function robotLib(config) {
             return this.shoot(speed);
         },
         rotate: (theta) => {
-            checks.id();
+            checks.id() && checks.dist();
             theta = checks.args(0, 0, theta, 0, 0)[2];
             return commsExec.pauseAndSend({ sslVisionId,
                 x: world.pX + (120 * Math.cos(theta)),
