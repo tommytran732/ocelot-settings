@@ -264,7 +264,7 @@ function robotLib(config: any) {
       sslVisionId = id;
       commsExec.pauseAndSend({});
     },
-    getWorld: () => {
+    queryWorld: () => {
       return commsExec.pauseAndSend({});
     },
     aimLeft: () => {

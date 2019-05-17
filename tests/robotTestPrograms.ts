@@ -1,6 +1,6 @@
 // Get the world state.
 const r = require('robotLib');
-console.log(r.getWorld());
+console.log(r.queryWorld());
 
 // Move to a point.
 const r = require('robotLib');
@@ -70,7 +70,7 @@ r.strikeRight(); // Greater chance of miss.
 // Goalie I
 const r = require('robotLib');
 r.setId(1);
-const world = r.getWorld();
+const world = r.queryWorld();
 let them = world.ourBots[0];
 
 while(true) {
@@ -82,7 +82,7 @@ while(true) {
 // Goalie II
 const r = require('robotLib');
 r.setId(1);
-const world = r.getWorld();
+const world = r.queryWorld();
 let them = world.ourBots[0];
 
 while(true) {
@@ -98,7 +98,7 @@ while(true) {
 // Goalie III
 const r = require('robotLib');
 r.setId(1);
-const world = r.getWorld();
+const world = r.queryWorld();
 let them = world.ourBots[0];
 
 while(true) {
@@ -135,7 +135,7 @@ function getRandom(min, max) {
 }
 
 while(true) {
-  r.getWorld();
+  r.queryWorld();
   move1 = r.projectMove(1, 2);
   d1 = r.distanceFrom(move1.pX, move1.pY);
   move2 = r.projectMove(2, 2);
@@ -153,7 +153,7 @@ r.moveXY(3000, 0);
 let move = null;
 
 while(true) {
-  r.getWorld();
+  r.queryWorld();
   move = r.projectMove(0, 0); // r.projectMove(0, 2);
   r.moveXY(move.pX, move.pY);
 }
@@ -165,7 +165,7 @@ r.moveXY(2500, 0);
 let move = null, d = null;
 
 while(true) {
-  r.getWorld();
+  r.queryWorld();
   move = r.projectMove(0, 2);
   d = r.distanceFrom(move.pX, move.pY);
   if (d < 2000) {
