@@ -48,6 +48,14 @@ function robotLib(config: any) {
           }
         },
         gets: any = { // Get things.
+          ball: () => {
+            return {
+              pX: world.pX,
+              pY: world.pY,
+              vX: world.vX,
+              vY: world.vY
+            };
+          },
           payload: (cmd: any) => {
             if (cmd._fill) {
               cmd._fill();
@@ -266,6 +274,12 @@ function robotLib(config: any) {
     },
     queryWorld: () => {
       return commsExec.pauseAndSend({});
+    },
+    filterBall: () => {
+      return world ? gets.ball() : {};
+    },
+    filterBot: (id: number = sslVisionId) => {
+      return (world && !checks.id(id)) ? gets.robot(id) : {};
     },
     aimLeft: () => {
       return pk.aim(Direction.Left);
