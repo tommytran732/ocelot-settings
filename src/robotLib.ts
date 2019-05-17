@@ -205,7 +205,7 @@ function robotLib(config: any) {
             return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
           },
           project: (id: number, time: number) => {
-            checks.id() && checks.id(id);
+            checks.id() || checks.id(id);
             time = checks.args(0, 0, 0, time, 0)[3];
 
             const bot = gets.robot(id),
@@ -217,7 +217,7 @@ function robotLib(config: any) {
         },
         soccer: any = { // Soccer activity.
           shoot: (kick: number = 10) => {
-            checks.id() && checks.dist();
+            checks.id() || checks.dist();
             kick = checks.args(0, 0, 0, 0, kick)[4];
             return commsExec.pauseAndSend({ kick, sslVisionId });
           },
@@ -230,7 +230,7 @@ function robotLib(config: any) {
             return this.shoot(speed);
           },
           rotate: (theta: number) => {
-            checks.id() && checks.dist();
+            checks.id() || checks.dist();
             theta = checks.args(0, 0, theta, 0, 0)[2];
             return commsExec.pauseAndSend({ sslVisionId,
               x: world.pX + (120 * Math.cos(theta)),
