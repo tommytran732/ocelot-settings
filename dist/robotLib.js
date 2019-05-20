@@ -18,8 +18,8 @@ function robotLib(config) {
             else if (y > 2800) {
                 y = 2800;
             }
-            if (speed < 1) {
-                speed = 1;
+            if (speed < 0) {
+                speed = 0;
             }
             else if (speed > 10) {
                 speed = 10;
@@ -195,7 +195,7 @@ function robotLib(config) {
             kick = checks.args(0, 0, 0, 0, kick)[4];
             return commsExec.pauseAndSend({ kick, sslVisionId });
         },
-        kick: function (speed = 1) {
+        kick: function (speed = 0) {
             mQ.push({ sslVisionId, _fill: function () {
                     this.x = world.pX + (120 * Math.cos(self.pTheta - Math.PI));
                     this.y = world.pY + (120 * Math.sin(self.pTheta - Math.PI));
