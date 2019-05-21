@@ -232,9 +232,10 @@ function robotLib(config: any) {
           },
           kick: function(speed: number = 0) {
             mQ.push({ sslVisionId, _fill: function() {
-              this.x = world.pX + (120 * Math.cos(self.pTheta - Math.PI));
-              this.y = world.pY + (120 * Math.sin(self.pTheta - Math.PI));
-              this.theta = self.pTheta;
+              [this.x, this.y, this.theta] = checks.args(
+                world.pX + (120 * Math.cos(self.pTheta - Math.PI)),
+                world.pY + (120 * Math.sin(self.pTheta - Math.PI)),
+                self.pTheta, 0, 0);
             }});
             return this.shoot(speed);
           },
