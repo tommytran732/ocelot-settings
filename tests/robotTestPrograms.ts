@@ -174,18 +174,3 @@ while(true) {
     r.moveXY(move.pX / 2,move.pY / 2);
   }
 }
-
-// zig-zag w/ ball
-const r = require('robotLib');
-r.setId(0);
-r.orient(5 * Math.PI / 4);
-r.kick();
-r.orient(Math.PI);
-r.kick();
-r.orient(3 * Math.PI / 4);
-r.kick();
-r.kick();
-r.orient(9 * Math.PI / 8);
-r.kick();
-r.orient(Math.PI);
-r.shoot();
