@@ -48,6 +48,9 @@ function robotLib(config) {
         },
         payload: (cmd) => {
             if (cmd._fill) {
+                if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
+                    mQ.push(Object.assign({}, cmd));
+                }
                 cmd._fill();
                 delete cmd._fill;
             }

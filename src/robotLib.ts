@@ -57,7 +57,10 @@ function robotLib(config: any) {
             };
           },
           payload: (cmd: any) => {
-            if (cmd._fill) {
+            if (cmd._fill) { // For now we can assume this is a dribble cmd.
+              if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
+                mQ.push(Object.assign({}, cmd));
+              }
               cmd._fill();
               delete cmd._fill;
             }
