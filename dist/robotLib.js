@@ -1,9 +1,9 @@
 function robotLib(config) {
     let approach = 2, sslVisionId = -1, self, world;
     const mQ = [], checks = {
-        args: (x, y, theta, time, speed) => {
+        args: (x, y, theta, time) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
-                typeof time !== 'number' || typeof speed !== 'number') {
+                typeof time !== 'number') {
                 throw Error('Please pass numbers to the function.');
             }
             if (x < 100) {
@@ -18,13 +18,13 @@ function robotLib(config) {
             else if (y > 2800) {
                 y = 2800;
             }
-            if (speed < 0) {
-                speed = 0;
+            if (theta > 2 * Math.PI) {
+                theta -= ((2 * Math.PI) * Math.trunc(theta / (2 * Math.PI)));
             }
-            else if (speed > 10) {
-                speed = 10;
+            else if (theta < -2 * Math.PI) {
+                theta += ((2 * Math.PI) * Math.trunc(theta / (-2 * Math.PI)));
             }
-            return [x, y, theta, time < 0 ? 0 : time, speed / 10];
+            return [x, y, theta, time < 0 ? 0 : time];
         },
         id: (id = sslVisionId) => {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
@@ -175,35 +175,34 @@ function robotLib(config) {
     }, tag = {
         distance: (x, y) => {
             checks.id();
-            [x, y] = checks.args(x, y, 0, 0, 0);
+            [x, y] = checks.args(x, y, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
         move: (x, y, theta, time) => {
             checks.id();
-            [x, y, theta, time] = checks.args(x, y, theta, time, 0);
+            [x, y, theta, time] = checks.args(x, y, theta, time);
             return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
         },
         project: (id, time) => {
             checks.id() || checks.id(id);
-            time = checks.args(0, 0, 0, time, 0)[3];
+            time = checks.args(0, 0, 0, time)[3];
             const bot = gets.robot(id), pX = bot.pX + (bot.vX * time), pY = bot.pY + (bot.vY * time);
             return { pX, pY };
         }
     }, soccer = {
-        shoot: (kick = 10) => {
+        shoot: (kick = 1) => {
             checks.id() || checks.dist();
-            kick = checks.args(0, 0, 0, 0, kick)[4];
             return commsExec.pauseAndSend({ kick, sslVisionId });
         },
-        kick: function (speed = 0) {
+        kick: function () {
             mQ.push({ sslVisionId, _fill: function () {
-                    [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0, 0);
+                    [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0);
                 } });
-            return this.shoot(speed);
+            return this.shoot(0);
         },
         rotate: (theta) => {
             checks.id() || checks.dist();
-            theta = checks.args(0, 0, theta, 0, 0)[2];
+            theta = checks.args(0, 0, theta, 0)[2];
             return commsExec.pauseAndSend({ sslVisionId,
                 x: world.pX + (120 * Math.cos(theta)),
                 y: world.pY + (120 * Math.sin(theta)),
@@ -300,14 +299,14 @@ function robotLib(config) {
         projectMove: (id, time) => {
             return tag.project(id, time);
         },
-        kick: (speed) => {
-            return soccer.kick(speed);
+        dribble: () => {
+            return soccer.kick();
         },
         orient: (theta) => {
             return soccer.rotate(theta);
         },
-        shoot: (speed) => {
-            return soccer.shoot(speed);
+        shoot: () => {
+            return soccer.shoot();
         }
     };
 }
