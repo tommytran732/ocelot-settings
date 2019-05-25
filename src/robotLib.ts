@@ -8,6 +8,9 @@ function robotLib(config: any) {
 
   const mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
+          angle: () => {
+            // TODO: Check to make sure we are facing the ball.
+          },
           args: (x: number, y: number, theta: number, time: number) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number') {
@@ -37,13 +40,17 @@ function robotLib(config: any) {
           },
           id: (id: number = sslVisionId) => {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
-              throw Error(`Invalid robot number: ${id}.`);
+              throw Error('Invalid robot number: ' + id);
             }
           },
           dist: () => {
-            if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
-                Math.pow(world.pY - self.pY, 2)) > 250) {
-              throw Error('Too far from ball; must be w/i 250 units.');
+            const dToBall: number = Math.sqrt(Math.pow(world.pX - self.pX, 2) +
+                Math.pow(world.pY - self.pY, 2));
+
+            if (dToBall > 300) {
+              throw Error(Math.trunc(dToBall) + ' units is too far from ball; must be w/i 300.');
+            } else if (dToBall > 150) {
+              return true;
             }
           }
         },
@@ -57,7 +64,7 @@ function robotLib(config: any) {
             };
           },
           payload: (cmd: any) => {
-            if (cmd._fill) { // For now we can assume this is a dribble cmd.
+            if (cmd._fill) { // For now we can assume this is a kick cmd.
               if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
                 mQ.push(Object.assign({}, cmd));
               }
@@ -71,7 +78,7 @@ function robotLib(config: any) {
                                   world.theirBots.find(bot => bot.id === id);
 
             if (!botFound) {
-              throw Error(`Robot ${id} not found.`);
+              throw Error('Robot not found: ' + id);
             } else {
               return botFound;
             }
@@ -178,7 +185,7 @@ function robotLib(config: any) {
                 theta = 0;
             }
 
-            mQ.push({ x: 2850, y, theta, sslVisionId });
+            mQ.push({ sslVisionId, x: 2850, y, theta });
 
             if (kickDirection !== approach) {
               wide = this.willMiss(kickDirection);
@@ -197,12 +204,12 @@ function robotLib(config: any) {
                   theta = wide ? Math.PI / (approach === Direction.Left ? -7 : 7) : 0;
               }
 
-              mQ.push({ x: 2850, y, theta, sslVisionId });
+              mQ.push({ sslVisionId, x: 2850, y, theta });
             }
 
-            mQ.push({ kick: 1, sslVisionId });
+            mQ.push({ sslVisionId, kick: 1 });
 
-            return commsExec.pauseAndSend(mQ.shift());
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           }
         },
         tag: any = { // Tag activity.
@@ -214,7 +221,7 @@ function robotLib(config: any) {
           move: (x: number, y: number, theta: number, time: number) => {
             checks.id();
             [x, y, theta, time] = checks.args(x, y, theta, time);
-            return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta }, time);
           },
           project: (id: number, time: number) => {
             checks.id() || checks.id(id);
@@ -228,18 +235,26 @@ function robotLib(config: any) {
           }
         },
         soccer: any = { // Soccer activity.
-          shoot: (kick: number = 1) => {
-            checks.id() || checks.dist();
-            return commsExec.pauseAndSend({ kick, sslVisionId });
+          _fill: function() {
+            [this.x, this.y, this.theta] = checks.args(
+              world.pX + (120 * Math.cos(self.pTheta - Math.PI)),
+              world.pY + (120 * Math.sin(self.pTheta - Math.PI)),
+              self.pTheta, 0);
           },
-          kick: function() {
-            mQ.push({ sslVisionId, _fill: function() {
-              [this.x, this.y, this.theta] = checks.args(
-                world.pX + (120 * Math.cos(self.pTheta - Math.PI)),
-                world.pY + (120 * Math.sin(self.pTheta - Math.PI)),
-                self.pTheta, 0);
-            }});
-            return this.shoot(0);
+          _align: function(kick) {
+            if (checks.id() || checks.dist()) {
+              mQ.push({ sslVisionId, _fill: this._fill });
+            }
+            mQ.push({ sslVisionId, kick });
+          },
+          shoot: function(kick: number = 1) {
+            this._align(kick);
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
+          },
+          dribble: function(kick: number = 0) {
+            this._align(kick);
+            mQ.push({ sslVisionId, _fill: this._fill });
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           },
           rotate: (theta: number) => {
             checks.id() || checks.dist();
@@ -342,7 +357,7 @@ function robotLib(config: any) {
       return tag.project(id, time);
     },
     dribble: () => {
-      return soccer.kick();
+      return soccer.dribble();
     },
     orient: (theta: number) => {
       return soccer.rotate(theta);

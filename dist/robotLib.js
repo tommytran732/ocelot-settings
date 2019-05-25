@@ -1,6 +1,8 @@
 function robotLib(config) {
     let approach = 2, sslVisionId = -1, self, world;
     const mQ = [], checks = {
+        angle: () => {
+        },
         args: (x, y, theta, time) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number') {
@@ -28,13 +30,17 @@ function robotLib(config) {
         },
         id: (id = sslVisionId) => {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
-                throw Error(`Invalid robot number: ${id}.`);
+                throw Error('Invalid robot number: ' + id);
             }
         },
         dist: () => {
-            if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
-                Math.pow(world.pY - self.pY, 2)) > 250) {
-                throw Error('Too far from ball; must be w/i 250 units.');
+            const dToBall = Math.sqrt(Math.pow(world.pX - self.pX, 2) +
+                Math.pow(world.pY - self.pY, 2));
+            if (dToBall > 300) {
+                throw Error(Math.trunc(dToBall) + ' units is too far from ball; must be w/i 300.');
+            }
+            else if (dToBall > 150) {
+                return true;
             }
         }
     }, gets = {
@@ -60,7 +66,7 @@ function robotLib(config) {
             const botFound = world.ourBots.find(bot => bot.id === id) ||
                 world.theirBots.find(bot => bot.id === id);
             if (!botFound) {
-                throw Error(`Robot ${id} not found.`);
+                throw Error('Robot not found: ' + id);
             }
             else {
                 return botFound;
@@ -154,7 +160,7 @@ function robotLib(config) {
                     y = 0;
                     theta = 0;
             }
-            mQ.push({ x: 2850, y, theta, sslVisionId });
+            mQ.push({ sslVisionId, x: 2850, y, theta });
             if (kickDirection !== approach) {
                 wide = this.willMiss(kickDirection);
                 switch (kickDirection) {
@@ -170,10 +176,10 @@ function robotLib(config) {
                         y = 0;
                         theta = wide ? Math.PI / (approach === 0 ? -7 : 7) : 0;
                 }
-                mQ.push({ x: 2850, y, theta, sslVisionId });
+                mQ.push({ sslVisionId, x: 2850, y, theta });
             }
-            mQ.push({ kick: 1, sslVisionId });
-            return commsExec.pauseAndSend(mQ.shift());
+            mQ.push({ sslVisionId, kick: 1 });
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
         }
     }, tag = {
         distance: (x, y) => {
@@ -184,7 +190,7 @@ function robotLib(config) {
         move: (x, y, theta, time) => {
             checks.id();
             [x, y, theta, time] = checks.args(x, y, theta, time);
-            return commsExec.pauseAndSend({ x, y, theta, sslVisionId }, time);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta }, time);
         },
         project: (id, time) => {
             checks.id() || checks.id(id);
@@ -193,15 +199,23 @@ function robotLib(config) {
             return { pX, pY };
         }
     }, soccer = {
-        shoot: (kick = 1) => {
-            checks.id() || checks.dist();
-            return commsExec.pauseAndSend({ kick, sslVisionId });
+        _fill: function () {
+            [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0);
         },
-        kick: function () {
-            mQ.push({ sslVisionId, _fill: function () {
-                    [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0);
-                } });
-            return this.shoot(0);
+        _align: function (kick) {
+            if (checks.id() || checks.dist()) {
+                mQ.push({ sslVisionId, _fill: this._fill });
+            }
+            mQ.push({ sslVisionId, kick });
+        },
+        shoot: function (kick = 1) {
+            this._align(kick);
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
+        },
+        dribble: function (kick = 0) {
+            this._align(kick);
+            mQ.push({ sslVisionId, _fill: this._fill });
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
         },
         rotate: (theta) => {
             checks.id() || checks.dist();
@@ -303,7 +317,7 @@ function robotLib(config) {
             return tag.project(id, time);
         },
         dribble: () => {
-            return soccer.kick();
+            return soccer.dribble();
         },
         orient: (theta) => {
             return soccer.rotate(theta);
