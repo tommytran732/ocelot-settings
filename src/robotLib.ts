@@ -48,7 +48,7 @@ function robotLib(config: any) {
                 Math.pow(world.pY - self.pY, 2));
 
             if (dToBall > 300) {
-              throw Error(Math.trunc(dToBall) + ' units is too far from ball; must be w/i 300.');
+              throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be w/i 300.');
             } else if (dToBall > 150) {
               return true;
             }
@@ -109,7 +109,7 @@ function robotLib(config: any) {
           resume: (value: any = world, isError: boolean = false) => {
             const runnerResult: any = gets.runnerResult();
 
-            if (runnerResult.isRunning) {
+            if (runnerResult.isRunning && runnerResult.runner.k) {
               runnerResult.runner.continueImmediate({
                 type: isError ? 'exception' : 'normal',
                 stack: [], value
@@ -267,7 +267,7 @@ function robotLib(config: any) {
           }
         };
 
-  // TODO: Guard to prevent Ocelot-beta crash while it doesn't support WS.
+  // Guard to prevent Ocelot-beta crash.
   if (config.ws) {
     config.ws.onmessage = (e: any) => {
       world = JSON.parse(e.data);

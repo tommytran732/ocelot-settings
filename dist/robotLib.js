@@ -37,7 +37,7 @@ function robotLib(config) {
             const dToBall = Math.sqrt(Math.pow(world.pX - self.pX, 2) +
                 Math.pow(world.pY - self.pY, 2));
             if (dToBall > 300) {
-                throw Error(Math.trunc(dToBall) + ' units is too far from ball; must be w/i 300.');
+                throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be w/i 300.');
             }
             else if (dToBall > 150) {
                 return true;
@@ -97,7 +97,7 @@ function robotLib(config) {
         },
         resume: (value = world, isError = false) => {
             const runnerResult = gets.runnerResult();
-            if (runnerResult.isRunning) {
+            if (runnerResult.isRunning && runnerResult.runner.k) {
                 runnerResult.runner.continueImmediate({
                     type: isError ? 'exception' : 'normal',
                     stack: [], value
