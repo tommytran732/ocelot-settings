@@ -6,7 +6,10 @@ function robotLib(config: any) {
       self: any,
       world: any;
 
-  const mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
+  // TODO: MIN_X adjusted from -4300 for lab.
+  const MIN_X: number = 100, MAX_X: number = 4300, MIN_Y: number = -2800, MAX_Y: number = 2800,
+        PK_BALL: number = 3000,
+        mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
           angle: () => {
             // TODO: Check to make sure we are facing the ball.
@@ -17,17 +20,16 @@ function robotLib(config: any) {
               throw Error('Please pass numbers to the function.');
             }
 
-            // TODO: X min adjusted from -4300 for lab.
-            if (x < 100) {
-              x = 100;
-            } else if (x > 4300) {
-              x = 4300;
+            if (x < MIN_X) {
+              x = MIN_X;
+            } else if (x > MAX_X) {
+              x = MAX_X;
             }
 
-            if (y < -2800) {
-              y = -2800;
-            } else if (y > 2800) {
-              y = 2800;
+            if (y < MIN_Y) {
+              y = MIN_Y;
+            } else if (y > MAX_Y) {
+              y = MAX_Y;
             }
 
             if (theta > 2 * Math.PI) {
@@ -142,7 +144,7 @@ function robotLib(config: any) {
 
             approach = direction;
 
-            return commsExec.pauseAndSend({ x: 2500, y, theta, sslVisionId });
+            return commsExec.pauseAndSend({ x: PK_BALL - 500, y, theta, sslVisionId });
           },
           block: (direction: Direction) => {
             checks.id();
@@ -150,7 +152,7 @@ function robotLib(config: any) {
             const y: number = direction === Direction.Left ? -500 :
                               (direction === Direction.Right ? 500 : 0);
 
-            return commsExec.pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
+            return commsExec.pauseAndSend({ x: MAX_X, y, theta: Math.PI, sslVisionId });
           },
           blockRandom: function() {
             const rand = Math.random();
@@ -185,7 +187,7 @@ function robotLib(config: any) {
                 theta = 0;
             }
 
-            mQ.push({ sslVisionId, x: 2850, y, theta });
+            mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
 
             if (kickDirection !== approach) {
               wide = this.willMiss(kickDirection);
@@ -204,7 +206,7 @@ function robotLib(config: any) {
                   theta = wide ? Math.PI / (approach === Direction.Left ? -7 : 7) : 0;
               }
 
-              mQ.push({ sslVisionId, x: 2850, y, theta });
+              mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
             }
 
             mQ.push({ sslVisionId, kick: 1 });

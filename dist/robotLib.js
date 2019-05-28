@@ -1,6 +1,6 @@
 function robotLib(config) {
     let approach = 2, sslVisionId = -1, self, world;
-    const mQ = [], checks = {
+    const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, PK_BALL = 3000, mQ = [], checks = {
         angle: () => {
         },
         args: (x, y, theta, time) => {
@@ -8,17 +8,17 @@ function robotLib(config) {
                 typeof time !== 'number') {
                 throw Error('Please pass numbers to the function.');
             }
-            if (x < 100) {
-                x = 100;
+            if (x < MIN_X) {
+                x = MIN_X;
             }
-            else if (x > 4300) {
-                x = 4300;
+            else if (x > MAX_X) {
+                x = MAX_X;
             }
-            if (y < -2800) {
-                y = -2800;
+            if (y < MIN_Y) {
+                y = MIN_Y;
             }
-            else if (y > 2800) {
-                y = 2800;
+            else if (y > MAX_Y) {
+                y = MAX_Y;
             }
             if (theta > 2 * Math.PI) {
                 theta -= ((2 * Math.PI) * Math.trunc(theta / (2 * Math.PI)));
@@ -125,13 +125,13 @@ function robotLib(config) {
                     theta = 0;
             }
             approach = direction;
-            return commsExec.pauseAndSend({ x: 2500, y, theta, sslVisionId });
+            return commsExec.pauseAndSend({ x: PK_BALL - 500, y, theta, sslVisionId });
         },
         block: (direction) => {
             checks.id();
             const y = direction === 0 ? -500 :
                 (direction === 1 ? 500 : 0);
-            return commsExec.pauseAndSend({ x: 4300, y, theta: Math.PI, sslVisionId });
+            return commsExec.pauseAndSend({ x: MAX_X, y, theta: Math.PI, sslVisionId });
         },
         blockRandom: function () {
             const rand = Math.random();
@@ -160,7 +160,7 @@ function robotLib(config) {
                     y = 0;
                     theta = 0;
             }
-            mQ.push({ sslVisionId, x: 2850, y, theta });
+            mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
             if (kickDirection !== approach) {
                 wide = this.willMiss(kickDirection);
                 switch (kickDirection) {
@@ -176,7 +176,7 @@ function robotLib(config) {
                         y = 0;
                         theta = wide ? Math.PI / (approach === 0 ? -7 : 7) : 0;
                 }
-                mQ.push({ sslVisionId, x: 2850, y, theta });
+                mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
             }
             mQ.push({ sslVisionId, kick: 1 });
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));
