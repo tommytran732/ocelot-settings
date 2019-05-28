@@ -1,6 +1,6 @@
 function robotLib(config) {
     let approach = 2, sslVisionId = -1, self, world;
-    const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, PK_BALL = 3000, mQ = [], checks = {
+    const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, MIN_POST = -500, MAX_POST = 500, PK_BALL = 3000, mQ = [], checks = {
         angle: () => {
         },
         args: (x, y, theta, time) => {
@@ -129,9 +129,12 @@ function robotLib(config) {
         },
         block: (direction) => {
             checks.id();
-            const y = direction === 0 ? -500 :
-                (direction === 1 ? 500 : 0);
-            return commsExec.pauseAndSend({ x: MAX_X, y, theta: Math.PI, sslVisionId });
+            return commsExec.pauseAndSend({ sslVisionId,
+                x: MAX_X,
+                y: direction === 0 ? MIN_POST :
+                    (direction === 1 ? MAX_POST : 0),
+                theta: Math.PI
+            });
         },
         blockRandom: function () {
             const rand = Math.random();
@@ -225,6 +228,20 @@ function robotLib(config) {
                 y: world.pY + (120 * Math.sin(theta)),
                 theta: theta - Math.PI
             });
+        },
+        trackPosition: (id) => {
+            checks.id() || checks.id(id);
+            const botY = gets.robot(id).pY;
+            return commsExec.pauseAndSend({ sslVisionId,
+                x: self.pX,
+                y: botY < MIN_POST ? MIN_POST : (botY > MAX_POST ? MAX_POST : botY),
+                theta: self.pTheta
+            });
+        },
+        trackRotation: (id) => {
+            checks.id() || checks.id(id);
+        },
+        trackBall: () => {
         }
     };
     if (config.ws) {

@@ -8,7 +8,7 @@ function robotLib(config: any) {
 
   // TODO: MIN_X adjusted from -4300 for lab.
   const MIN_X: number = 100, MAX_X: number = 4300, MIN_Y: number = -2800, MAX_Y: number = 2800,
-        PK_BALL: number = 3000,
+        MIN_POST: number = -500, MAX_POST: number = 500, PK_BALL: number = 3000,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
           angle: () => {
@@ -149,19 +149,20 @@ function robotLib(config: any) {
           block: (direction: Direction) => {
             checks.id();
 
-            const y: number = direction === Direction.Left ? -500 :
-                              (direction === Direction.Right ? 500 : 0);
-
-            return commsExec.pauseAndSend({ x: MAX_X, y, theta: Math.PI, sslVisionId });
+            return commsExec.pauseAndSend({ sslVisionId,
+              x: MAX_X,
+              y: direction === Direction.Left ? MIN_POST :
+                (direction === Direction.Right ? MAX_POST : 0),
+              theta: Math.PI
+            });
           },
           blockRandom: function() {
-            const rand = Math.random();
+            const rand: number = Math.random();
             return rand < .333 ? this.block(Direction.Left) :
               (rand < .667 ? this.block(Direction.Center) : this.block(Direction.Right));
           },
           willMiss: (direction: Direction) => {
-            const rand = Math.random();
-
+            const rand: number = Math.random();
             return ((direction === Direction.Left && approach === Direction.Right) ||
                     (direction === Direction.Right && approach === Direction.Left)) ?
                     rand < .3 : rand < .1;
@@ -229,9 +230,9 @@ function robotLib(config: any) {
             checks.id() || checks.id(id);
             time = checks.args(0, 0, 0, time)[3];
 
-            const bot = gets.robot(id),
-                  pX = bot.pX + (bot.vX * time),
-                  pY = bot.pY + (bot.vY * time);
+            const bot: any = gets.robot(id),
+                  pX: number = bot.pX + (bot.vX * time),
+                  pY: number = bot.pY + (bot.vY * time);
 
             return { pX, pY };
           }
@@ -266,6 +267,24 @@ function robotLib(config: any) {
               y: world.pY + (120 * Math.sin(theta)),
               theta: theta - Math.PI
             });
+          },
+          trackPosition: (id: number) => {
+            checks.id() || checks.id(id);
+
+            const botY: number = gets.robot(id).pY;
+
+            return commsExec.pauseAndSend({ sslVisionId,
+              x: self.pX,
+              y: botY < MIN_POST ? MIN_POST : (botY > MAX_POST ? MAX_POST : botY),
+              theta: self.pTheta
+            });
+          },
+          trackRotation: (id: number) => {
+            checks.id() || checks.id(id);
+            // TODO
+          },
+          trackBall: () => {
+            // TODO
           }
         };
 
