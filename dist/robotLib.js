@@ -240,8 +240,7 @@ function robotLib(config) {
         },
         trackRotation: (id) => {
             checks.id() || checks.id(id);
-        },
-        trackBall: () => {
+            const bot = gets.robot(id);
         }
     };
     if (config.ws) {
@@ -309,11 +308,11 @@ function robotLib(config) {
         blockRandom: () => {
             return pk.blockRandom();
         },
-        delayedMove: (x, y, theta, time) => {
+        delayMove: (x, y, theta, time) => {
             return tag.move(x, y, theta, time);
         },
         move: function (x, y, theta) {
-            return this.delayedMove(x, y, theta, 0);
+            return this.delayMove(x, y, theta, 0);
         },
         moveXY: function (x, y) {
             return this.move(x, y, self.pTheta, 0);
@@ -341,6 +340,9 @@ function robotLib(config) {
         },
         shoot: () => {
             return soccer.shoot();
+        },
+        trackPosition: (id) => {
+            return soccer.trackPosition(id);
         }
     };
 }

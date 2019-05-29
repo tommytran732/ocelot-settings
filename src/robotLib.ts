@@ -281,9 +281,9 @@ function robotLib(config: any) {
           },
           trackRotation: (id: number) => {
             checks.id() || checks.id(id);
-            // TODO
-          },
-          trackBall: () => {
+
+            const bot: number = gets.robot(id);
+
             // TODO
           }
         };
@@ -353,11 +353,11 @@ function robotLib(config: any) {
     blockRandom: () => {
       return pk.blockRandom();
     },
-    delayedMove: (x: number, y: number, theta: number, time: number) => {
+    delayMove: (x: number, y: number, theta: number, time: number) => {
       return tag.move(x, y, theta, time);
     },
     move: function(x: number, y: number, theta: number) {
-      return this.delayedMove(x, y, theta, 0);
+      return this.delayMove(x, y, theta, 0);
     },
     moveXY: function(x: number, y: number) {
       return this.move(x, y, self.pTheta, 0);
@@ -385,6 +385,9 @@ function robotLib(config: any) {
     },
     shoot: () => {
       return soccer.shoot();
+    },
+    trackPosition: (id: number) => {
+      return soccer.trackPosition(id);
     }
   };
 }
