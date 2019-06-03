@@ -1,4 +1,4 @@
-function robotLib(config: any) {
+function robotLibrary(config: any) {
   const enum Direction { Left, Right, Center } // PK shootout aim/block.
 
   let approach: Direction = Direction.Center,

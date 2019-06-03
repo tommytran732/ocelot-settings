@@ -1,4 +1,4 @@
-function robotLib(config) {
+function robotLibrary(config) {
     let approach = 2, sslVisionId = -1, self, world;
     const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, MIN_POST = -500, MAX_POST = 500, PK_BALL = 3000, mQ = [], checks = {
         angle: () => {
