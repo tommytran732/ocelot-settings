@@ -1,40 +1,40 @@
 // Get the world state.
-const r = require('robotLib');
+const r = require('robotLibrary');
 console.log(r.queryWorld());
 
 // Move to a point.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.move(3000, -500, Math.PI);
 
 // Move to successive points.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.move(3000, -500, Math.PI);
 r.move(0, 0, 0);
 r.move(-1000, 500, -Math.PI);
 
 // Move to the same point.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.move(0, 0, 0);
 r.move(0, 0, 0);
 
 // Rotate to Math.PI then to 0 (360).
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.rotate(Math.PI);
 r.rotate(0);
 
 // Move with set angle.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.moveXY(1000, 1000);
 r.moveX(0);
 r.moveY(0);
 
 // Finite Loop.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 for(let i = 0; i < 3; i += 1) {
   r.moveXY(100, 100);
@@ -44,7 +44,7 @@ for(let i = 0; i < 3; i += 1) {
 }
 
 // Striker I.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.aimLeft();
 r.aimRight();
@@ -54,7 +54,7 @@ r.aimLeft();
 r.strike();
 
 // Striker II.
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.aimCenter();
 r.aimLeft();
@@ -62,13 +62,13 @@ r.aimRight();
 r.strikeCenter(); // Chance of miss.
 
 // Striker III
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.aimLeft();
 r.strikeRight(); // Greater chance of miss.
 
 // Goalie I
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(1);
 const world = r.queryWorld();
 let them = world.ourBots[0];
@@ -80,7 +80,7 @@ while(true) {
 }
 
 // Goalie II
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(1);
 const world = r.queryWorld();
 let them = world.ourBots[0];
@@ -96,7 +96,7 @@ while(true) {
 }
 
 // Goalie III
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(1);
 const world = r.queryWorld();
 let them = world.ourBots[0];
@@ -112,7 +112,7 @@ while(true) {
 }
 
 // It I
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.moveXY(4000, 2500);
 while(true) {
@@ -123,7 +123,7 @@ while(true) {
 }
 
 // It II
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(0);
 r.moveXY(4000, 2500);
 
@@ -147,7 +147,7 @@ while(true) {
 }
 
 // Tag I
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(1);
 r.moveXY(3000, 0);
 let move = null;
@@ -159,7 +159,7 @@ while(true) {
 }
 
 // Tag II
-const r = require('robotLib');
+const r = require('robotLibrary');
 r.setId(2);
 r.moveXY(2500, 0);
 let move = null, d = null;
