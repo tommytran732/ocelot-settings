@@ -50,7 +50,7 @@ function robotLib(config: any) {
                 Math.pow(world.pY - self.pY, 2));
 
             if (dToBall > 300) {
-              throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be w/i 300.');
+              throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be within 300.');
             } else if (dToBall > 150) {
               return true;
             }
@@ -380,7 +380,7 @@ function robotLib(config: any) {
     dribble: () => {
       return soccer.dribble();
     },
-    orient: (theta: number) => {
+    rotateAroundBall: (theta: number) => {
       return soccer.rotate(theta);
     },
     shoot: () => {
