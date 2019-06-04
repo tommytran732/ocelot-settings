@@ -1,6 +1,6 @@
 function robotLibrary(config) {
     let approach = 2, sslVisionId = -1, self, world;
-    const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, MIN_POST = -500, MAX_POST = 500, PK_BALL = 3000, mQ = [], checks = {
+    const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, MIN_POST = -500, MAX_POST = 500, mQ = [], checks = {
         angle: () => {
         },
         args: (x, y, theta, time) => {
@@ -125,7 +125,7 @@ function robotLibrary(config) {
                     theta = 0;
             }
             approach = direction;
-            return commsExec.pauseAndSend({ x: PK_BALL - 500, y, theta, sslVisionId });
+            return commsExec.pauseAndSend({ x: world.pX - 500, y, theta, sslVisionId });
         },
         block: (direction) => {
             checks.id();
@@ -163,7 +163,7 @@ function robotLibrary(config) {
                     y = 0;
                     theta = 0;
             }
-            mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
+            mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
             if (kickDirection !== approach) {
                 wide = this.willMiss(kickDirection);
                 switch (kickDirection) {
@@ -179,7 +179,7 @@ function robotLibrary(config) {
                         y = 0;
                         theta = wide ? Math.PI / (approach === 0 ? -7 : 7) : 0;
                 }
-                mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
+                mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
             }
             mQ.push({ sslVisionId, kick: 1 });
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));

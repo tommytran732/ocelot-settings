@@ -8,7 +8,7 @@ function robotLibrary(config: any) {
 
   // TODO: MIN_X adjusted from -4300 for lab.
   const MIN_X: number = 100, MAX_X: number = 4300, MIN_Y: number = -2800, MAX_Y: number = 2800,
-        MIN_POST: number = -500, MAX_POST: number = 500, PK_BALL: number = 3000,
+        MIN_POST: number = -500, MAX_POST: number = 500,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
           angle: () => {
@@ -144,7 +144,7 @@ function robotLibrary(config: any) {
 
             approach = direction;
 
-            return commsExec.pauseAndSend({ x: PK_BALL - 500, y, theta, sslVisionId });
+            return commsExec.pauseAndSend({ x: world.pX - 500, y, theta, sslVisionId });
           },
           block: (direction: Direction) => {
             checks.id();
@@ -188,7 +188,7 @@ function robotLibrary(config: any) {
                 theta = 0;
             }
 
-            mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
+            mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
 
             if (kickDirection !== approach) {
               wide = this.willMiss(kickDirection);
@@ -207,7 +207,7 @@ function robotLibrary(config: any) {
                   theta = wide ? Math.PI / (approach === Direction.Left ? -7 : 7) : 0;
               }
 
-              mQ.push({ sslVisionId, x: PK_BALL - 150, y, theta });
+              mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
             }
 
             mQ.push({ sslVisionId, kick: 1 });
