@@ -176,44 +176,42 @@ function robotLibrary(config: any) {
           shoot: function(kickDirection: Direction = approach) {
             checks.id();
 
-            let y: number,
-                theta: number,
-                wide: boolean;
+            let theta: number, wide: boolean;
 
             switch (approach) {
               case Direction.Left:
-                y = 20;
                 theta = Math.PI / -12;
                 break;
               case Direction.Right:
-                y = -20;
                 theta = Math.PI / 12;
                 break;
               default:
-                y = 0;
                 theta = 0;
             }
 
-            mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
+            mQ.push({ sslVisionId, theta,
+              x: world.pX + (120 * Math.cos(theta - Math.PI)),
+              y: world.pY + (120 * Math.sin(theta - Math.PI)),
+            });
 
             if (kickDirection !== approach) {
               wide = this.willMiss(kickDirection);
 
               switch (kickDirection) {
                 case Direction.Left:
-                  y = 20;
                   theta = Math.PI / (wide ? -10 : -12);
                   break;
                 case Direction.Right:
-                  y = -20;
                   theta = Math.PI / (wide ? 10 : 12);
                   break;
                 default:
-                  y = 0;
                   theta = wide ? Math.PI / (approach === Direction.Left ? -10 : 10) : 0;
               }
 
-              mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
+              mQ.push({ sslVisionId, theta,
+                x: world.pX + (120 * Math.cos(theta - Math.PI)),
+                y: world.pY + (120 * Math.sin(theta - Math.PI)),
+              });
             }
 
             mQ.push({ sslVisionId, kick: 1 });
