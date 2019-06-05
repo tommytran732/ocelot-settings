@@ -1,6 +1,6 @@
 function robotLibrary(config) {
     let approach = 2, sslVisionId = -1, self, world;
-    const MIN_X = 100, MAX_X = 4300, MIN_Y = -2800, MAX_Y = 2800, MIN_POST = -500, MAX_POST = 500, mQ = [], checks = {
+    const MIN_X = -1800, MAX_X = 1800, MIN_Y = -1200, MAX_Y = 1200, MIN_POST = -400, MAX_POST = 400, mQ = [], checks = {
         angle: () => {
         },
         args: (x, y, theta, time) => {
@@ -121,12 +121,12 @@ function robotLibrary(config) {
             let y, theta;
             switch (direction) {
                 case 0:
-                    y = 180;
-                    theta = Math.PI / -9;
+                    y = 150;
+                    theta = Math.PI / -12;
                     break;
                 case 1:
-                    y = -180;
-                    theta = Math.PI / 9;
+                    y = -150;
+                    theta = Math.PI / 12;
                     break;
                 default:
                     y = 0;
@@ -161,11 +161,11 @@ function robotLibrary(config) {
             switch (approach) {
                 case 0:
                     y = 20;
-                    theta = Math.PI / -9;
+                    theta = Math.PI / -12;
                     break;
                 case 1:
                     y = -20;
-                    theta = Math.PI / 9;
+                    theta = Math.PI / 12;
                     break;
                 default:
                     y = 0;
@@ -177,15 +177,15 @@ function robotLibrary(config) {
                 switch (kickDirection) {
                     case 0:
                         y = 20;
-                        theta = Math.PI / (wide ? -7 : -9);
+                        theta = Math.PI / (wide ? -10 : -12);
                         break;
                     case 1:
                         y = -20;
-                        theta = Math.PI / (wide ? 7 : 9);
+                        theta = Math.PI / (wide ? 10 : 12);
                         break;
                     default:
                         y = 0;
-                        theta = wide ? Math.PI / (approach === 0 ? -7 : 7) : 0;
+                        theta = wide ? Math.PI / (approach === 0 ? -10 : 10) : 0;
                 }
                 mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
             }

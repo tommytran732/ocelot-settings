@@ -6,9 +6,8 @@ function robotLibrary(config: any) {
       self: any,
       world: any;
 
-  // TODO: MIN_X adjusted from -4300 for lab.
-  const MIN_X: number = 100, MAX_X: number = 4300, MIN_Y: number = -2800, MAX_Y: number = 2800,
-        MIN_POST: number = -500, MAX_POST: number = 500,
+  const MIN_X: number = -1800, MAX_X: number = 1800, MIN_Y: number = -1200, MAX_Y: number = 1200,
+        MIN_POST: number = -400, MAX_POST: number = 400,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
           angle: () => {
@@ -137,12 +136,12 @@ function robotLibrary(config: any) {
 
             switch (direction) {
               case Direction.Left:
-                y = 180;
-                theta = Math.PI / -9;
+                y = 150;
+                theta = Math.PI / -12;
                 break;
               case Direction.Right:
-                y = -180;
-                theta = Math.PI / 9;
+                y = -150;
+                theta = Math.PI / 12;
                 break;
               default:
                 y = 0;
@@ -184,11 +183,11 @@ function robotLibrary(config: any) {
             switch (approach) {
               case Direction.Left:
                 y = 20;
-                theta = Math.PI / -9;
+                theta = Math.PI / -12;
                 break;
               case Direction.Right:
                 y = -20;
-                theta = Math.PI / 9;
+                theta = Math.PI / 12;
                 break;
               default:
                 y = 0;
@@ -203,15 +202,15 @@ function robotLibrary(config: any) {
               switch (kickDirection) {
                 case Direction.Left:
                   y = 20;
-                  theta = Math.PI / (wide ? -7 : -9);
+                  theta = Math.PI / (wide ? -10 : -12);
                   break;
                 case Direction.Right:
                   y = -20;
-                  theta = Math.PI / (wide ? 7 : 9);
+                  theta = Math.PI / (wide ? 10 : 12);
                   break;
                 default:
                   y = 0;
-                  theta = wide ? Math.PI / (approach === Direction.Left ? -7 : 7) : 0;
+                  theta = wide ? Math.PI / (approach === Direction.Left ? -10 : 10) : 0;
               }
 
               mQ.push({ sslVisionId, x: world.pX - 100, y, theta });
