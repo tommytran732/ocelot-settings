@@ -42,6 +42,14 @@ function robotLibrary(config) {
             else if (dToBall > 150) {
                 return true;
             }
+        },
+        msg: (msg) => {
+            if (!Object.keys(msg).length) {
+                throw Error('No data found; make sure your simulator is running.');
+            }
+            else {
+                return msg;
+            }
         }
     }, gets = {
         ball: () => {
@@ -245,8 +253,8 @@ function robotLibrary(config) {
     };
     if (config.ws) {
         config.ws.onmessage = (e) => {
-            world = JSON.parse(e.data);
             try {
+                world = checks.msg(JSON.parse(e.data));
                 self = sslVisionId < 0 ? self : gets.robot();
                 if (mQ.length) {
                     commsExec.send(gets.payload(mQ.shift()));

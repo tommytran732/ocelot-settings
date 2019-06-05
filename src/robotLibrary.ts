@@ -54,6 +54,13 @@ function robotLibrary(config: any) {
             } else if (dToBall > 150) {
               return true;
             }
+          },
+          msg: (msg: any) => {
+            if (!Object.keys(msg).length) {
+              throw Error('No data found; make sure your simulator is running.');
+            } else {
+              return msg;
+            }
           }
         },
         gets: any = { // Get things.
@@ -291,8 +298,8 @@ function robotLibrary(config: any) {
   // Guard to prevent Ocelot-beta crash.
   if (config.ws) {
     config.ws.onmessage = (e: any) => {
-      world = JSON.parse(e.data);
       try {
+        world = checks.msg(JSON.parse(e.data));
         self = sslVisionId < 0 ? self : gets.robot();
         if (mQ.length) {
           commsExec.send(gets.payload(mQ.shift()));
