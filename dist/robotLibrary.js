@@ -71,8 +71,8 @@ function robotLibrary(config) {
             return cmd;
         },
         robot: (id = sslVisionId) => {
-            const botFound = world.ourBots.find(bot => bot.id === id) ||
-                world.theirBots.find(bot => bot.id === id);
+            const botFound = (world.ourBots && world.ourBots.find(bot => bot.id === id)) ||
+                (world.theirBots && world.theirBots.find(bot => bot.id === id));
             if (!botFound) {
                 throw Error('Robot not found: ' + id);
             }
