@@ -5,12 +5,12 @@ console.log(r.queryWorld());
 // Move to a point.
 const r = require('robotLibrary');
 r.setId(0);
-r.move(3000, -500, Math.PI);
+r.move(1000, -500, Math.PI);
 
 // Move to successive points.
 const r = require('robotLibrary');
 r.setId(0);
-r.move(3000, -500, Math.PI);
+r.move(1000, -500, Math.PI);
 r.move(0, 0, 0);
 r.move(-1000, 500, -Math.PI);
 
@@ -74,7 +74,7 @@ const world = r.queryWorld();
 let them = world.ourBots[0];
 
 while(true) {
-  if (them.pX < 2800) {
+  if (them.pX < 200) {
     them = r.blockRandom().ourBots[0];
   }
 }
@@ -86,11 +86,11 @@ const world = r.queryWorld();
 let them = world.ourBots[0];
 
 while(true) {
-  if (them.pY > 20 && them.pX < 2800) {
+  if (them.pY > 20 && them.pX < 200) {
     them = r.blockLeft().ourBots[0];
-  } else if (them.pY < -20 && them.pX < 2800) {
+  } else if (them.pY < -20 && them.pX < 200) {
     them = r.blockRight().ourBots[0];
-  } else if (them.pX < 2800) {
+  } else if (them.pX < 200) {
     them = r.blockCenter().ourBots[0];
   }
 }
@@ -114,18 +114,18 @@ while(true) {
 // It I
 const r = require('robotLibrary');
 r.setId(0);
-r.moveXY(4000, 2500);
+r.moveXY(1700, 1100);
 while(true) {
-  r.moveXY(500, 2500);
-  r.moveXY(500, -2500);
-  r.moveXY(4000, -2500);
-  r.moveXY(4000, 2500);
+  r.moveXY(-1700, 1100);
+  r.moveXY(-1700, -1100);
+  r.moveXY(1700, -1100);
+  r.moveXY(1700, 1100);
 }
 
 // It II
 const r = require('robotLibrary');
 r.setId(0);
-r.moveXY(4000, 2500);
+r.moveXY(1700, 1100);
 
 let move1 = null, move2 = null,
     d1 = null, d2 = null;
@@ -141,15 +141,15 @@ while(true) {
   move2 = r.projectMove(2, 2);
   d2 = r.distanceFrom(move2.pX, move2.pY);
 
-  if (d1 < 2000 || d2 < 2000) {
-    r.moveXY(getRandom(0, 4000), getRandom(-2500, 2500));
+  if (d1 < 1200 || d2 < 1200) {
+    r.moveXY(getRandom(-1800, 1800), getRandom(-1200, 1200));
   }
 }
 
 // Tag I
 const r = require('robotLibrary');
 r.setId(1);
-r.moveXY(3000, 0);
+r.moveXY(200, 0);
 let move = null;
 
 while(true) {
@@ -161,16 +161,16 @@ while(true) {
 // Tag II
 const r = require('robotLibrary');
 r.setId(2);
-r.moveXY(2500, 0);
+r.moveXY(500, 0);
 let move = null, d = null;
 
 while(true) {
   r.queryWorld();
   move = r.projectMove(0, 2);
   d = r.distanceFrom(move.pX, move.pY);
-  if (d < 2000) {
+  if (d < 1000) {
     r.moveXY(move.pX, move.pY);
-  } else if (d < 4000) { // else {
+  } else if (d < 2000) { // else {
     r.moveXY(move.pX / 2,move.pY / 2);
   }
 }
