@@ -1,5 +1,5 @@
 function robotLibrary(config) {
-    let approach = 2, sslVisionId = -1, self, world;
+    let approach = 2, sslVisionId = -1, dssBall, self, world;
     const MIN_X = -1800, MAX_X = 1800, MIN_Y = -1200, MAX_Y = 1200, MIN_POST = -400, MAX_POST = 400, mQ = [], checks = {
         angle: () => {
         },
@@ -126,7 +126,8 @@ function robotLibrary(config) {
                     theta = 0;
             }
             approach = direction;
-            return commsExec.pauseAndSend({ x: world.pX - 500, y, theta, sslVisionId });
+            return commsExec.pauseAndSend({ sslVisionId, y, theta,
+                dss: true, x: world.pX - 500 });
         },
         block: (direction) => {
             checks.id();
@@ -150,18 +151,9 @@ function robotLibrary(config) {
         },
         shoot: function (kickDirection = approach) {
             checks.id();
-            let theta, wide;
-            switch (approach) {
-                case 0:
-                    theta = Math.PI / -12;
-                    break;
-                case 1:
-                    theta = Math.PI / 12;
-                    break;
-                default:
-                    theta = 0;
-            }
-            mQ.push({ sslVisionId, theta,
+            let wide, theta = approach === 0 ? Math.PI / -12 :
+                (approach === 1 ? Math.PI / 12 : 0);
+            mQ.push({ sslVisionId, theta, dss: true,
                 x: world.pX + (120 * Math.cos(theta - Math.PI)),
                 y: world.pY + (120 * Math.sin(theta - Math.PI)),
             });
@@ -177,7 +169,7 @@ function robotLibrary(config) {
                     default:
                         theta = wide ? Math.PI / (approach === 0 ? -10 : 10) : 0;
                 }
-                mQ.push({ sslVisionId, theta,
+                mQ.push({ sslVisionId, theta, dss: true,
                     x: world.pX + (120 * Math.cos(theta - Math.PI)),
                     y: world.pY + (120 * Math.sin(theta - Math.PI)),
                 });
@@ -194,7 +186,7 @@ function robotLibrary(config) {
         move: (x, y, theta) => {
             checks.id();
             [x, y, theta] = checks.args(x, y, theta, 0);
-            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
+            return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
         },
         project: (id, time) => {
             checks.id() || checks.id(id);
@@ -204,6 +196,7 @@ function robotLibrary(config) {
         }
     }, soccer = {
         _fill: function () {
+            this.dss = true;
             [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0);
         },
         _align: function (kick) {
@@ -224,7 +217,7 @@ function robotLibrary(config) {
         rotate: (theta) => {
             checks.id() || checks.dist();
             theta = checks.args(0, 0, theta, 0)[2];
-            return commsExec.pauseAndSend({ sslVisionId,
+            return commsExec.pauseAndSend({ sslVisionId, dss: true,
                 x: world.pX + (120 * Math.cos(theta)),
                 y: world.pY + (120 * Math.sin(theta)),
                 theta: theta - Math.PI
@@ -262,8 +255,9 @@ function robotLibrary(config) {
         };
     }
     return {
-        setId: (id) => {
+        setId: (id, dss = true) => {
             checks.id(id);
+            dssBall = Boolean(dss);
             sslVisionId = id;
             commsExec.pauseAndSend({});
         },
