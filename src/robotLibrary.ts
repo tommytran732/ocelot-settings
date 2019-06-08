@@ -105,14 +105,8 @@ function robotLibrary(config: any) {
           send: (payload: object) => {
             config.ws.send(JSON.stringify(payload));
           },
-          pauseAndSend: function(payload: object, delay: number = 0) {
-            return gets.runnerResult().runner.pauseImmediate(() => {
-              if (delay) {
-                window.setTimeout(this.send, delay, payload);
-              } else {
-                this.send(payload);
-              }
-            });
+          pauseAndSend: function(payload: object) {
+            return gets.runnerResult().runner.pauseImmediate(() => this.send(payload));
           },
           resume: (value: any = world, isError: boolean = false) => {
             const runnerResult: any = gets.runnerResult();
@@ -225,10 +219,10 @@ function robotLibrary(config: any) {
             [x, y] = checks.args(x, y, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
           },
-          move: (x: number, y: number, theta: number, time: number) => {
+          move: (x: number, y: number, theta: number) => {
             checks.id();
-            [x, y, theta, time] = checks.args(x, y, theta, time);
-            return commsExec.pauseAndSend({ sslVisionId, x, y, theta }, time);
+            [x, y, theta] = checks.args(x, y, theta, 0);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
           },
           project: (id: number, time: number) => {
             checks.id() || checks.id(id);
@@ -248,7 +242,7 @@ function robotLibrary(config: any) {
               world.pY + (120 * Math.sin(self.pTheta - Math.PI)),
               self.pTheta, 0);
           },
-          _align: function(kick) {
+          _align: function(kick: number) {
             if (checks.id() || checks.dist()) {
               mQ.push({ sslVisionId, _fill: this._fill });
             }
@@ -357,14 +351,11 @@ function robotLibrary(config: any) {
     blockRandom: () => {
       return pk.blockRandom();
     },
-    delayMove: (x: number, y: number, theta: number, time: number) => {
-      return tag.move(x, y, theta, time);
-    },
     move: function(x: number, y: number, theta: number) {
-      return this.delayMove(x, y, theta, 0);
+      return tag.move(x, y, theta);
     },
     moveXY: function(x: number, y: number) {
-      return this.move(x, y, self.pTheta, 0);
+      return this.move(x, y, self.pTheta);
     },
     moveX: function(x: number) {
       return this.moveXY(x, self.pY);
@@ -373,7 +364,7 @@ function robotLibrary(config: any) {
       return this.moveXY(self.pX, y);
     },
     rotate: function(theta: number) {
-      return this.move(self.pX, self.pY, theta, 0);
+      return this.move(self.pX, self.pY, theta);
     },
     distanceFrom: (x: number, y: number) => {
       return tag.distance(x, y);

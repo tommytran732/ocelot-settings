@@ -93,15 +93,8 @@ function robotLibrary(config) {
         send: (payload) => {
             config.ws.send(JSON.stringify(payload));
         },
-        pauseAndSend: function (payload, delay = 0) {
-            return gets.runnerResult().runner.pauseImmediate(() => {
-                if (delay) {
-                    window.setTimeout(this.send, delay, payload);
-                }
-                else {
-                    this.send(payload);
-                }
-            });
+        pauseAndSend: function (payload) {
+            return gets.runnerResult().runner.pauseImmediate(() => this.send(payload));
         },
         resume: (value = world, isError = false) => {
             const runnerResult = gets.runnerResult();
@@ -198,10 +191,10 @@ function robotLibrary(config) {
             [x, y] = checks.args(x, y, 0, 0);
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
         },
-        move: (x, y, theta, time) => {
+        move: (x, y, theta) => {
             checks.id();
-            [x, y, theta, time] = checks.args(x, y, theta, time);
-            return commsExec.pauseAndSend({ sslVisionId, x, y, theta }, time);
+            [x, y, theta] = checks.args(x, y, theta, 0);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
         },
         project: (id, time) => {
             checks.id() || checks.id(id);
@@ -316,14 +309,11 @@ function robotLibrary(config) {
         blockRandom: () => {
             return pk.blockRandom();
         },
-        delayMove: (x, y, theta, time) => {
-            return tag.move(x, y, theta, time);
-        },
         move: function (x, y, theta) {
-            return this.delayMove(x, y, theta, 0);
+            return tag.move(x, y, theta);
         },
         moveXY: function (x, y) {
-            return this.move(x, y, self.pTheta, 0);
+            return this.move(x, y, self.pTheta);
         },
         moveX: function (x) {
             return this.moveXY(x, self.pY);
@@ -332,7 +322,7 @@ function robotLibrary(config) {
             return this.moveXY(self.pX, y);
         },
         rotate: function (theta) {
-            return this.move(self.pX, self.pY, theta, 0);
+            return this.move(self.pX, self.pY, theta);
         },
         distanceFrom: (x, y) => {
             return tag.distance(x, y);
