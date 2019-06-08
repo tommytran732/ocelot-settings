@@ -1,5 +1,5 @@
 function robotLibrary(config: any) {
-  const enum Direction { Left, Right, Center } // PK shootout aim/block.
+  const enum Direction { Left, Right, Center }
 
   let approach: Direction = Direction.Center,
       sslVisionId: number = -1,
@@ -32,9 +32,9 @@ function robotLibrary(config: any) {
               y = MAX_Y;
             }
 
-            if (theta > 2 * Math.PI) {
+            if (theta >= 2 * Math.PI) {
               theta -= ((2 * Math.PI) * Math.trunc(theta / (2 * Math.PI)));
-            } else if (theta < -2 * Math.PI) {
+            } else if (theta <= -2 * Math.PI) {
               theta += ((2 * Math.PI) * Math.trunc(theta / (-2 * Math.PI)));
             }
 
@@ -80,6 +80,7 @@ function robotLibrary(config: any) {
               cmd._fill();
               delete cmd._fill;
             }
+
             return cmd;
           },
           robot: (id: number = sslVisionId) => {
@@ -122,6 +123,52 @@ function robotLibrary(config: any) {
             }
           }
         },
+        maze: any = { // Maze activity.
+          moveForward: () => {
+            checks.id();
+
+            const theta: number = checks.args(0, 0, self.pTheta, 0)[2];
+
+            let x: number = self.pX,
+                y: number = self.pY;
+
+            if (theta < 0) {
+              if (theta > Math.PI / -4) {
+                x += 400;
+              } else if (theta > 3 * Math.PI / -4) {
+                y -= 400;
+              } else if (theta > 5 * Math.PI / -4) {
+                x -= 400;
+              } else {
+                y += 400;
+              }
+            } else {
+              if (theta < Math.PI / 4) {
+                x += 400;
+              } else if (theta <  3 * Math.PI / 4) {
+                y += 400;
+              } else if (theta <  5 * Math.PI / 4) {
+                x -= 400;
+              } else {
+                y -= 400;
+              }
+            }
+
+            [x, y] = checks.args(x, y, 0, 0);
+
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
+          },
+          turn: (direction: Direction) => {
+            checks.id();
+
+            return commsExec.pauseAndSend({ sslVisionId,
+              x: self.pX,
+              y: self.pY,
+              theta: checks.args(0, 0, self.pTheta + (Math.PI /
+                (direction === Direction.Left ? 2 : -2)), 0)[2]
+            });
+          }
+        },
         pk: any = { // PK activity.
           aim: (direction: Direction) => {
             checks.id();
@@ -160,11 +207,13 @@ function robotLibrary(config: any) {
           },
           blockRandom: function() {
             const rand: number = Math.random();
+
             return rand < .333 ? this.block(Direction.Left) :
               (rand < .667 ? this.block(Direction.Center) : this.block(Direction.Right));
           },
           willMiss: (direction: Direction) => {
             const rand: number = Math.random();
+
             return ((direction === Direction.Left && approach === Direction.Right) ||
                     (direction === Direction.Right && approach === Direction.Left)) ?
                     rand < .3 : rand < .1;
@@ -210,11 +259,13 @@ function robotLibrary(config: any) {
           distance: (x: number, y: number) => {
             checks.id();
             [x, y] = checks.args(x, y, 0, 0);
+
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
           },
           move: (x: number, y: number, theta: number) => {
             checks.id();
             [x, y, theta] = checks.args(x, y, theta, 0);
+
             return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
           },
           project: (id: number, time: number) => {
@@ -244,16 +295,19 @@ function robotLibrary(config: any) {
           },
           shoot: function(kick: number = 1) {
             this._align(kick);
+
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           },
           dribble: function(kick: number = 0) {
             this._align(kick);
             mQ.push({ sslVisionId, _fill: this._fill });
+
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           },
           rotate: (theta: number) => {
             checks.id() || checks.dist();
             theta = checks.args(0, 0, theta, 0)[2];
+
             return commsExec.pauseAndSend({ sslVisionId, dss: true,
               x: world.pX + (120 * Math.cos(theta)),
               y: world.pY + (120 * Math.sin(theta)),
@@ -302,7 +356,8 @@ function robotLibrary(config: any) {
       checks.id(id);
       dssBall = Boolean(dss);
       sslVisionId = id;
-      commsExec.pauseAndSend({});
+
+      return commsExec.pauseAndSend({});
     },
     queryWorld: () => {
       return commsExec.pauseAndSend({});
@@ -312,6 +367,15 @@ function robotLibrary(config: any) {
     },
     filterBot: (id: number = sslVisionId) => {
       return (world && !checks.id(id)) ? gets.robot(id) : {};
+    },
+    moveForward: () => {
+      return maze.moveForward();
+    },
+    turnLeft: () => {
+      return maze.turn(Direction.Left);
+    },
+    turnRight: () => {
+      return maze.turn(Direction.Right);
     },
     aimLeft: () => {
       return pk.aim(Direction.Left);

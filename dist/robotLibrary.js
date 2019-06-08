@@ -20,10 +20,10 @@ function robotLibrary(config) {
             else if (y > MAX_Y) {
                 y = MAX_Y;
             }
-            if (theta > 2 * Math.PI) {
+            if (theta >= 2 * Math.PI) {
                 theta -= ((2 * Math.PI) * Math.trunc(theta / (2 * Math.PI)));
             }
-            else if (theta < -2 * Math.PI) {
+            else if (theta <= -2 * Math.PI) {
                 theta += ((2 * Math.PI) * Math.trunc(theta / (-2 * Math.PI)));
             }
             return [x, y, theta, time < 0 ? 0 : time];
@@ -107,6 +107,51 @@ function robotLibrary(config) {
             else {
                 runnerResult.onStopped();
             }
+        }
+    }, maze = {
+        moveForward: () => {
+            checks.id();
+            const theta = checks.args(0, 0, self.pTheta, 0)[2];
+            let x = self.pX, y = self.pY;
+            if (theta < 0) {
+                if (theta > Math.PI / -4) {
+                    x += 400;
+                }
+                else if (theta > 3 * Math.PI / -4) {
+                    y -= 400;
+                }
+                else if (theta > 5 * Math.PI / -4) {
+                    x -= 400;
+                }
+                else {
+                    y += 400;
+                }
+            }
+            else {
+                if (theta < Math.PI / 4) {
+                    x += 400;
+                }
+                else if (theta < 3 * Math.PI / 4) {
+                    y += 400;
+                }
+                else if (theta < 5 * Math.PI / 4) {
+                    x -= 400;
+                }
+                else {
+                    y -= 400;
+                }
+            }
+            [x, y] = checks.args(x, y, 0, 0);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
+        },
+        turn: (direction) => {
+            checks.id();
+            return commsExec.pauseAndSend({ sslVisionId,
+                x: self.pX,
+                y: self.pY,
+                theta: checks.args(0, 0, self.pTheta + (Math.PI /
+                    (direction === 0 ? 2 : -2)), 0)[2]
+            });
         }
     }, pk = {
         aim: (direction) => {
@@ -259,7 +304,7 @@ function robotLibrary(config) {
             checks.id(id);
             dssBall = Boolean(dss);
             sslVisionId = id;
-            commsExec.pauseAndSend({});
+            return commsExec.pauseAndSend({});
         },
         queryWorld: () => {
             return commsExec.pauseAndSend({});
@@ -269,6 +314,15 @@ function robotLibrary(config) {
         },
         filterBot: (id = sslVisionId) => {
             return (world && !checks.id(id)) ? gets.robot(id) : {};
+        },
+        moveForward: () => {
+            return maze.moveForward();
+        },
+        turnLeft: () => {
+            return maze.turn(0);
+        },
+        turnRight: () => {
+            return maze.turn(1);
         },
         aimLeft: () => {
             return pk.aim(0);
