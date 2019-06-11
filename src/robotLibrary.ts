@@ -20,6 +20,11 @@ function robotLibrary(config: any) {
               throw Error('Please pass numbers to the function.');
             }
 
+            if (x === -0) { x = 0; }
+            if (y === -0) { y = 0; }
+            if (theta === -0) { theta = 0; }
+            if (time === -0) { time = 0; }
+
             if (x < MIN_X) {
               x = MIN_X;
             } else if (x > MAX_X) {
@@ -124,13 +129,67 @@ function robotLibrary(config: any) {
           }
         },
         maze: any = { // Maze activity.
-          moveForward: () => {
+          _snapAngle: () => {
+            let theta: number = checks.args(0, 0, self.pTheta, 0)[2];
+
+            if (theta < 0) {
+              if (theta > Math.PI / -4) {
+                theta = 0;
+              } else if (theta > 3 * Math.PI / -4) {
+                theta = Math.PI / -2;
+              } else if (theta > 5 * Math.PI / -4) {
+                theta = -Math.PI;
+              } else if (theta >  7 * Math.PI / -4) {
+                theta = 3 * Math.PI / -2;
+              } else {
+                theta = 0;
+              }
+            } else {
+              if (theta < Math.PI / 4) {
+                theta = 0;
+              } else if (theta <  3 * Math.PI / 4) {
+                theta = Math.PI / 2;
+              } else if (theta <  5 * Math.PI / 4) {
+                theta = Math.PI;
+              } else if (theta <  7 * Math.PI / 4) {
+                theta = 3 * Math.PI / 2;
+              } else {
+                theta = 0;
+              }
+            }
+
+            return theta;
+          },
+          _snapPosition: () => {
+            let x: number = self.pX,
+                y: number = self.pY;
+
+            if (x < 0) {
+              x = Math.ceil(x / 200);
+              x = Math.floor(x / 2);
+            } else {
+              x = Math.floor(x / 200);
+              x = Math.ceil(x / 2);
+            }
+
+            x *= 400;
+
+            if (y < 0) {
+              y = Math.ceil(y / 400);
+              y = (400 * y) - 200;
+            } else {
+              y = Math.floor(y / 400);
+              y = (400 * y) + 200;
+            }
+
+            return [x, y];
+          },
+          moveForward: function() {
             checks.id();
 
             const theta: number = checks.args(0, 0, self.pTheta, 0)[2];
 
-            let x: number = self.pX,
-                y: number = self.pY;
+            let [x, y]: [number, number] = this._snapPosition();
 
             if (theta < 0) {
               if (theta > Math.PI / -4) {
@@ -158,13 +217,13 @@ function robotLibrary(config: any) {
 
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
           },
-          turn: (direction: Direction) => {
+          turn: function(direction: Direction) {
             checks.id();
 
             return commsExec.pauseAndSend({ sslVisionId,
               x: self.pX,
               y: self.pY,
-              theta: checks.args(0, 0, self.pTheta + (Math.PI /
+              theta: checks.args(0, 0, this._snapAngle() + (Math.PI /
                 (direction === Direction.Left ? 2 : -2)), 0)[2]
             });
           }
