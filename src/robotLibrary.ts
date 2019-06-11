@@ -164,23 +164,11 @@ function robotLibrary(config: any) {
             let x: number = self.pX,
                 y: number = self.pY;
 
-            if (x < 0) {
-              x = Math.ceil(x / 200);
-              x = Math.floor(x / 2);
-            } else {
-              x = Math.floor(x / 200);
-              x = Math.ceil(x / 2);
-            }
+            x = 400 * ((x < 0) ? Math.floor(Math.ceil(x / 200) / 2) :
+                                 Math.ceil(Math.floor(x / 200) / 2));
 
-            x *= 400;
-
-            if (y < 0) {
-              y = Math.ceil(y / 400);
-              y = (400 * y) - 200;
-            } else {
-              y = Math.floor(y / 400);
-              y = (400 * y) + 200;
-            }
+            y = (y < 0) ? ((400 * Math.ceil(y / 400)) - 200) :
+                          ((400 * Math.floor(y / 400)) + 200);
 
             return [x, y];
           },
