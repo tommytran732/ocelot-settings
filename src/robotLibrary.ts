@@ -240,7 +240,7 @@ function robotLibrary(config: any) {
             approach = direction;
 
             return commsExec.pauseAndSend({ sslVisionId, y, theta,
-              dss: true, x: world.pX - 500 });
+              dssBall: true, x: world.pX - 500 });
           },
           block: (direction: Direction) => {
             checks.id();
@@ -272,7 +272,7 @@ function robotLibrary(config: any) {
                 theta: number = approach === Direction.Left ? Math.PI / -12 :
                   (approach === Direction.Right ? Math.PI / 12 : 0);
 
-            mQ.push({ sslVisionId, theta, dss: true,
+            mQ.push({ sslVisionId, theta, dssBall: true,
               x: world.pX + (120 * Math.cos(theta - Math.PI)),
               y: world.pY + (120 * Math.sin(theta - Math.PI)),
             });
@@ -291,7 +291,7 @@ function robotLibrary(config: any) {
                   theta = wide ? Math.PI / (approach === Direction.Left ? -10 : 10) : 0;
               }
 
-              mQ.push({ sslVisionId, theta, dss: true,
+              mQ.push({ sslVisionId, theta, dssBall: true,
                 x: world.pX + (120 * Math.cos(theta - Math.PI)),
                 y: world.pY + (120 * Math.sin(theta - Math.PI)),
               });
@@ -328,7 +328,7 @@ function robotLibrary(config: any) {
         },
         soccer: any = { // Soccer activity.
           _fill: function() {
-            this.dss = true;
+            this.dssBall = true;
             [this.x, this.y, this.theta] = checks.args(
               world.pX + (120 * Math.cos(self.pTheta - Math.PI)),
               world.pY + (120 * Math.sin(self.pTheta - Math.PI)),
@@ -355,7 +355,7 @@ function robotLibrary(config: any) {
             checks.id() || checks.dist();
             theta = checks.args(0, 0, theta, 0)[2];
 
-            return commsExec.pauseAndSend({ sslVisionId, dss: true,
+            return commsExec.pauseAndSend({ sslVisionId, dssBall: true,
               x: world.pX + (120 * Math.cos(theta)),
               y: world.pY + (120 * Math.sin(theta)),
               theta: theta - Math.PI

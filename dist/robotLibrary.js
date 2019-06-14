@@ -230,7 +230,7 @@ function robotLibrary(config) {
             }
             approach = direction;
             return commsExec.pauseAndSend({ sslVisionId, y, theta,
-                dss: true, x: world.pX - 500 });
+                dssBall: true, x: world.pX - 500 });
         },
         block: (direction) => {
             checks.id();
@@ -256,7 +256,7 @@ function robotLibrary(config) {
             checks.id();
             let wide, theta = approach === 0 ? Math.PI / -12 :
                 (approach === 1 ? Math.PI / 12 : 0);
-            mQ.push({ sslVisionId, theta, dss: true,
+            mQ.push({ sslVisionId, theta, dssBall: true,
                 x: world.pX + (120 * Math.cos(theta - Math.PI)),
                 y: world.pY + (120 * Math.sin(theta - Math.PI)),
             });
@@ -272,7 +272,7 @@ function robotLibrary(config) {
                     default:
                         theta = wide ? Math.PI / (approach === 0 ? -10 : 10) : 0;
                 }
-                mQ.push({ sslVisionId, theta, dss: true,
+                mQ.push({ sslVisionId, theta, dssBall: true,
                     x: world.pX + (120 * Math.cos(theta - Math.PI)),
                     y: world.pY + (120 * Math.sin(theta - Math.PI)),
                 });
@@ -299,7 +299,7 @@ function robotLibrary(config) {
         }
     }, soccer = {
         _fill: function () {
-            this.dss = true;
+            this.dssBall = true;
             [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0);
         },
         _align: function (kick) {
@@ -320,7 +320,7 @@ function robotLibrary(config) {
         rotate: (theta) => {
             checks.id() || checks.dist();
             theta = checks.args(0, 0, theta, 0)[2];
-            return commsExec.pauseAndSend({ sslVisionId, dss: true,
+            return commsExec.pauseAndSend({ sslVisionId, dssBall: true,
                 x: world.pX + (120 * Math.cos(theta)),
                 y: world.pY + (120 * Math.sin(theta)),
                 theta: theta - Math.PI
