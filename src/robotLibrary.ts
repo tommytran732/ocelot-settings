@@ -375,9 +375,20 @@ function robotLibrary(config: any) {
           trackRotation: (id: number) => {
             checks.id() || checks.id(id);
 
-            const bot: number = gets.robot(id);
+            const bot: any = gets.robot(id),
+                  botTheta: number = checks.args(0, 0, bot.pTheta, 0)[2],
+                  target: number = (bot.pX > 0 && self.pX > 0) ?
+                    bot.pY + ((1800 - bot.pX) * Math.tan(botTheta)) :
+                    ((bot.pX < 0 && self.pX < 0) ?
+                    bot.pY - ((bot.pX + 1800) * Math.tan(botTheta)) : Number.NaN);
 
-            // TODO
+            if (Number.isFinite(target)) {
+              return commsExec.pauseAndSend({ sslVisionId,
+                x: self.pX,
+                y: target < MIN_POST ? MIN_POST : (target > MAX_POST ? MAX_POST : target),
+                theta: self.pTheta
+              });
+            }
           }
         };
 
@@ -489,6 +500,9 @@ function robotLibrary(config: any) {
     },
     trackPosition: (id: number) => {
       return soccer.trackPosition(id);
+    },
+    trackRotation: (id: number) => {
+      return soccer.trackRotation(id);
     }
   };
 }
