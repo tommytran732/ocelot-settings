@@ -247,8 +247,8 @@ function robotLibrary(config: any) {
 
             return commsExec.pauseAndSend({ sslVisionId,
               x: MAX_X,
-              y: direction === Direction.Left ? MIN_POST :
-                (direction === Direction.Right ? MAX_POST : 0),
+              y: direction === Direction.Left ? (MIN_POST + 50) :
+                (direction === Direction.Right ? (MAX_POST - 50) : 0),
               theta: Math.PI
             });
           },
@@ -368,7 +368,7 @@ function robotLibrary(config: any) {
 
             return commsExec.pauseAndSend({ sslVisionId,
               x: self.pX,
-              y: botY < MIN_POST ? MIN_POST : (botY > MAX_POST ? MAX_POST : botY),
+              y: botY < MIN_POST ? (MIN_POST + 50) : (botY > MAX_POST ? (MAX_POST - 50) : botY),
               theta: self.pTheta
             });
           },
@@ -385,7 +385,8 @@ function robotLibrary(config: any) {
             if (Number.isFinite(target)) {
               return commsExec.pauseAndSend({ sslVisionId,
                 x: self.pX,
-                y: target < MIN_POST ? MIN_POST : (target > MAX_POST ? MAX_POST : target),
+                y: target < MIN_POST ? (MIN_POST + 50) :
+                  (target > MAX_POST ? (MAX_POST - 50) : target),
                 theta: self.pTheta
               });
             }
