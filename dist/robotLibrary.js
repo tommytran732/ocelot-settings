@@ -1,8 +1,6 @@
 function robotLibrary(config) {
     let approach = 2, sslVisionId = -1, dssBall, self, world;
     const MIN_X = -1800, MAX_X = 1800, MIN_Y = -1200, MAX_Y = 1200, MIN_POST = -400, MAX_POST = 400, mQ = [], checks = {
-        angle: () => {
-        },
         args: (x, y, theta, time) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number') {
@@ -40,6 +38,14 @@ function robotLibrary(config) {
             }
             return [x, y, theta, time < 0 ? 0 : time];
         },
+        angle: function () {
+            const theta = this.args(0, 0, self.pTheta, 0)[2], start = theta - (Math.PI / 4), final = theta + (Math.PI / 4), angle = Math.atan2(world.pY - self.pY, world.pX - self.pX);
+            if ((angle < Math.min(start, final) || angle > Math.max(start, final)) &&
+                (Math.abs(angle) < 3.1 ||
+                    (-angle < Math.min(start, final) || -angle > Math.max(start, final)))) {
+                throw Error('Robot must be facing the ball.');
+            }
+        },
         id: (id = sslVisionId) => {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
                 throw Error('Invalid robot number: ' + id);
@@ -51,8 +57,8 @@ function robotLibrary(config) {
             if (dToBall > 300) {
                 throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be within 300.');
             }
-            else if (dToBall > 150) {
-                return true;
+            else {
+                return dToBall > 150;
             }
         },
         msg: (msg) => {
@@ -303,9 +309,10 @@ function robotLibrary(config) {
             [this.x, this.y, this.theta] = checks.args(world.pX + (120 * Math.cos(self.pTheta - Math.PI)), world.pY + (120 * Math.sin(self.pTheta - Math.PI)), self.pTheta, 0);
         },
         _align: function (kick) {
-            if (checks.id() || checks.dist()) {
-                mQ.push({ sslVisionId, _fill: this._fill });
-            }
+            checks.id();
+            checks.dist();
+            checks.angle();
+            checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
         },
         shoot: function (kick = 1) {

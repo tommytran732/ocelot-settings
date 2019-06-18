@@ -11,9 +11,6 @@ function robotLibrary(config: any) {
         MIN_POST: number = -400, MAX_POST: number = 400,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         checks: any = { // Check things.
-          angle: () => {
-            // TODO: Check to make sure we are facing the ball.
-          },
           args: (x: number, y: number, theta: number, time: number) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number') {
@@ -45,6 +42,18 @@ function robotLibrary(config: any) {
 
             return [x, y, theta, time < 0 ? 0 : time];
           },
+          angle: function() {
+            const theta: number = this.args(0, 0, self.pTheta, 0)[2],
+                  start: number = theta - (Math.PI / 4),
+                  final: number = theta + (Math.PI / 4),
+                  angle: number = Math.atan2(world.pY - self.pY, world.pX - self.pX);
+
+            if ((angle < Math.min(start, final) || angle > Math.max(start, final)) &&
+                (Math.abs(angle) < 3.1  || // Hack to account for error.
+                (-angle < Math.min(start, final) || -angle > Math.max(start, final)))) {
+              throw Error('Robot must be facing the ball.');
+            }
+          },
           id: (id: number = sslVisionId) => {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
               throw Error('Invalid robot number: ' + id);
@@ -56,8 +65,8 @@ function robotLibrary(config: any) {
 
             if (dToBall > 300) {
               throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be within 300.');
-            } else if (dToBall > 150) {
-              return true;
+            } else {
+              return dToBall > 150;
             }
           },
           msg: (msg: any) => {
@@ -335,9 +344,10 @@ function robotLibrary(config: any) {
               self.pTheta, 0);
           },
           _align: function(kick: number) {
-            if (checks.id() || checks.dist()) {
-              mQ.push({ sslVisionId, _fill: this._fill });
-            }
+            checks.id();
+            checks.dist();
+            checks.angle();
+            checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
           shoot: function(kick: number = 1) {
