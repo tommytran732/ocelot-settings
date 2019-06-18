@@ -323,7 +323,7 @@ function robotLibrary(config) {
             return commsExec.pauseAndSend({ sslVisionId, dssBall: true,
                 x: world.pX + (120 * Math.cos(theta)),
                 y: world.pY + (120 * Math.sin(theta)),
-                theta: theta - Math.PI
+                theta: checks.args(0, 0, theta - Math.PI, 0)[2]
             });
         },
         trackPosition: (id) => {
