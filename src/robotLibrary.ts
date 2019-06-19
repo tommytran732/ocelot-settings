@@ -54,6 +54,12 @@ function robotLibrary(config: any) {
               throw Error('Robot must be facing the ball.');
             }
           },
+          bounds: () => {
+            if (world.pX < MIN_X - 10 || world.pX > MAX_X + 10 ||
+                world.pY < MIN_Y - 10 || world.pY > MAX_Y + 10 ) {
+              throw Error('Ball out of bounds.');
+            }
+          },
           id: (id: number = sslVisionId) => {
             if (!Number.isInteger(id) || id < 0 || id > 9) {
               throw Error('Invalid robot number: ' + id);
@@ -345,6 +351,7 @@ function robotLibrary(config: any) {
           },
           _align: function(kick: number) {
             checks.id();
+            checks.bounds();
             checks.dist();
             checks.angle();
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
