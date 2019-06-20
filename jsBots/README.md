@@ -1,7 +1,3 @@
-# JS Bots
-
----
-
 ## Programs
 Contains programs written using the Ocelot [library](https://github.com/umass-compsci220/ocelot-settings/blob/master/src/robotLibrary.ts). These programs serve as NPC agents or other demo programs we may want to share with the students.
 
