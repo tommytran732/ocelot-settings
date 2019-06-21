@@ -1,6 +1,6 @@
 function robotLibrary(config) {
     let approach = 2, sslVisionId = -1, dssBall, self, world;
-    const MIN_X = -1800, MAX_X = 1800, MIN_Y = -1200, MAX_Y = 1200, MIN_POST = -400, MAX_POST = 400, mQ = [], checks = {
+    const MIN_X = -1700, MAX_X = 1700, MIN_Y = -1100, MAX_Y = 1100, MIN_POST = -400, MAX_POST = 400, mQ = [], checks = {
         args: (x, y, theta, time) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
                 typeof time !== 'number') {
@@ -41,14 +41,14 @@ function robotLibrary(config) {
         angle: function () {
             const theta = this.args(0, 0, self.pTheta, 0)[2], start = theta - (Math.PI / 4), final = theta + (Math.PI / 4), angle = Math.atan2(world.pY - self.pY, world.pX - self.pX);
             if ((angle < Math.min(start, final) || angle > Math.max(start, final)) &&
-                (Math.abs(angle) < 3.1 ||
+                (Math.abs(angle) < 3 ||
                     (-angle < Math.min(start, final) || -angle > Math.max(start, final)))) {
                 throw Error('Robot must be facing the ball.');
             }
         },
         bounds: () => {
-            if (world.pX < MIN_X - 10 || world.pX > MAX_X + 10 ||
-                world.pY < MIN_Y - 10 || world.pY > MAX_Y + 10) {
+            if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
+                world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110) {
                 throw Error('Ball out of bounds.');
             }
         },
