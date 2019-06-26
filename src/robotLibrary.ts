@@ -10,6 +10,40 @@ function robotLibrary(config: any) {
   const MIN_X: number = -1700, MAX_X: number = 1700, MIN_Y: number = -1100, MAX_Y: number = 1100,
         MIN_POST: number = -400, MAX_POST: number = 400,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
+        angles: any = {
+          toDegrees: (bot: any) => {
+            return {
+              id: bot.id,
+              pX: bot.pX,
+              pY: bot.pY,
+              pAngle: bot.pTheta * (180 / Math.PI),
+              vX: bot.vX,
+              vY: bot.vY,
+              vAngle: bot.vTheta * (180 / Math.PI),
+            };
+          },
+          toRadians: (angle: number) => angle * (Math.PI / 180),
+          worldToDegrees: function() {
+            const newWorld: any = {
+              pX: world.pX,
+              pY: world.pY,
+              vX: world.vX,
+              vY: world.vY
+            };
+
+            if (world.ourBots) {
+              newWorld.ourBots = [];
+              world.ourBots.forEach(bot => newWorld.ourBots.push(this.toDegrees(bot)));
+            }
+
+            if (world.theirBots) {
+              newWorld.theirBots = [];
+              world.theirBots.forEach(bot => newWorld.theirBots.push(this.toDegrees(bot)));
+            }
+
+            return newWorld;
+          }
+        },
         checks: any = { // Check things.
           args: (x: number, y: number, theta: number, time: number) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
@@ -42,7 +76,7 @@ function robotLibrary(config: any) {
 
             return [x, y, theta, time < 0 ? 0 : time];
           },
-          angle: function() {
+          direction: function() {
             const theta: number = this.args(0, 0, self.pTheta, 0)[2],
                   start: number = theta - (Math.PI / 4),
                   final: number = theta + (Math.PI / 4),
@@ -70,7 +104,7 @@ function robotLibrary(config: any) {
                 Math.pow(world.pY - self.pY, 2));
 
             if (dToBall > 300) {
-              throw Error(Math.ceil(dToBall) + ' units is too far from ball; must be within 300.');
+              throw Error(Math.ceil(dToBall) + 'mm is too far from ball; must be within 300.');
             } else {
               return dToBall > 150;
             }
@@ -103,7 +137,7 @@ function robotLibrary(config: any) {
 
             return cmd;
           },
-          robot: (id: number = sslVisionId) => {
+          bot: (id: number = sslVisionId) => {
             const botFound: any = (world.ourBots && world.ourBots.find(bot => bot.id === id)) ||
                                   (world.theirBots && world.theirBots.find(bot => bot.id === id));
 
@@ -124,13 +158,11 @@ function robotLibrary(config: any) {
           }
         },
         commsExec: any = { // Communications & Execution.
-          send: (payload: object) => {
-            config.ws.send(JSON.stringify(payload));
-          },
+          send: (payload: object) => config.ws.send(JSON.stringify(payload)),
           pauseAndSend: function(payload: object) {
             return gets.runnerResult().runner.pauseImmediate(() => this.send(payload));
           },
-          resume: (value: any = world, isError: boolean = false) => {
+          resume: (value: any, isError: boolean = false) => {
             const runnerResult: any = gets.runnerResult();
 
             if (runnerResult.isRunning && runnerResult.runner.k) {
@@ -334,7 +366,7 @@ function robotLibrary(config: any) {
             checks.id() || checks.id(id);
             time = checks.args(0, 0, 0, time)[3];
 
-            const bot: any = gets.robot(id),
+            const bot: any = gets.bot(id),
                   pX: number = bot.pX + (bot.vX * time),
                   pY: number = bot.pY + (bot.vY * time);
 
@@ -353,7 +385,7 @@ function robotLibrary(config: any) {
             checks.id();
             checks.bounds();
             checks.dist();
-            checks.angle();
+            checks.direction();
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
@@ -381,7 +413,7 @@ function robotLibrary(config: any) {
           trackPosition: (id: number) => {
             checks.id() || checks.id(id);
 
-            const botY: number = gets.robot(id).pY;
+            const botY: number = gets.bot(id).pY;
 
             return commsExec.pauseAndSend({ sslVisionId,
               x: self.pX,
@@ -392,7 +424,7 @@ function robotLibrary(config: any) {
           trackRotation: (id: number) => {
             checks.id() || checks.id(id);
 
-            const bot: any = gets.robot(id),
+            const bot: any = gets.bot(id),
                   botTheta: number = checks.args(0, 0, bot.pTheta, 0)[2],
                   target: number = (bot.pX > 0 && self.pX > 0) ?
                     bot.pY + ((1800 - bot.pX) * Math.tan(botTheta)) :
@@ -415,11 +447,11 @@ function robotLibrary(config: any) {
     config.ws.onmessage = (e: any) => {
       try {
         world = checks.msg(JSON.parse(e.data));
-        self = sslVisionId < 0 ? self : gets.robot();
+        self = sslVisionId < 0 ? self : gets.bot();
         if (mQ.length) {
           commsExec.send(gets.payload(mQ.shift()));
         } else {
-          commsExec.resume();
+          commsExec.resume(angles.worldToDegrees());
         }
       } catch (e) {
         commsExec.resume(e, true);
@@ -435,92 +467,35 @@ function robotLibrary(config: any) {
 
       return commsExec.pauseAndSend({});
     },
-    queryWorld: () => {
-      return commsExec.pauseAndSend({});
-    },
-    filterBall: () => {
-      return world ? gets.ball() : {};
-    },
-    filterBot: (id: number = sslVisionId) => {
-      return (world && !checks.id(id)) ? gets.robot(id) : {};
-    },
-    moveForward: () => {
-      return maze.moveForward();
-    },
-    turnLeft: () => {
-      return maze.turn(Direction.Left);
-    },
-    turnRight: () => {
-      return maze.turn(Direction.Right);
-    },
-    aimLeft: () => {
-      return pk.aim(Direction.Left);
-    },
-    aimRight: () => {
-      return pk.aim(Direction.Right);
-    },
-    aimCenter: () => {
-      return pk.aim(Direction.Center);
-    },
-    strike: () => {
-      return pk.shoot();
-    },
-    strikeLeft: () => {
-      return pk.shoot(Direction.Left);
-    },
-    strikeRight: () => {
-      return pk.shoot(Direction.Right);
-    },
-    strikeCenter: () => {
-      return pk.shoot(Direction.Center);
-    },
-    blockLeft: () => {
-      return pk.block(Direction.Left);
-    },
-    blockRight: () => {
-      return pk.block(Direction.Right);
-    },
-    blockCenter: () => {
-      return pk.block(Direction.Center);
-    },
-    blockRandom: () => {
-      return pk.blockRandom();
-    },
-    move: function(x: number, y: number, theta: number) {
-      return tag.move(x, y, theta);
-    },
-    moveXY: function(x: number, y: number) {
-      return this.move(x, y, self.pTheta);
-    },
-    moveX: function(x: number) {
-      return this.moveXY(x, self.pY);
-    },
-    moveY: function(y: number) {
-      return this.moveXY(self.pX, y);
-    },
-    rotate: function(theta: number) {
-      return this.move(self.pX, self.pY, theta);
-    },
-    distanceFrom: (x: number, y: number) => {
-      return tag.distance(x, y);
-    },
-    projectMove: (id: number, time: number) => {
-      return tag.project(id, time);
-    },
-    dribble: () => {
-      return soccer.dribble();
-    },
-    rotateAroundBall: (theta: number) => {
-      return soccer.rotate(theta);
-    },
-    shoot: () => {
-      return soccer.shoot();
-    },
-    trackPosition: (id: number) => {
-      return soccer.trackPosition(id);
-    },
-    trackRotation: (id: number) => {
-      return soccer.trackRotation(id);
-    }
+    queryWorld: () => commsExec.pauseAndSend({}),
+    filterBall: () => world ? gets.ball() : {},
+    filterBot: (id: number = sslVisionId) => (world && !checks.id(id)) ?
+      angles.toDegrees(gets.bot(id)) : {},
+    moveForward: () => maze.moveForward(),
+    turnLeft: () => maze.turn(Direction.Left),
+    turnRight: () => maze.turn(Direction.Right),
+    aimLeft: () => pk.aim(Direction.Left),
+    aimRight: () => pk.aim(Direction.Right),
+    aimCenter: () => pk.aim(Direction.Center),
+    strike: () => pk.shoot(),
+    strikeLeft: () => pk.shoot(Direction.Left),
+    strikeRight: () => pk.shoot(Direction.Right),
+    strikeCenter: () => pk.shoot(Direction.Center),
+    blockLeft: () => pk.block(Direction.Left),
+    blockRight: () => pk.block(Direction.Right),
+    blockCenter: () => pk.block(Direction.Center),
+    blockRandom: () => pk.blockRandom(),
+    move: (x: number, y: number, theta: number) => tag.move(x, y, angles.toRadians(theta)),
+    moveXY: (x: number, y: number) => tag.move(x, y, self.pTheta),
+    moveX: (x: number) => tag.move(x, self.pY, self.pTheta),
+    moveY: (y: number) => tag.move(self.pX, y, self.pTheta),
+    rotate: (theta: number) => tag.move(self.pX, self.pY, angles.toRadians(theta)),
+    distanceFrom: (x: number, y: number) => tag.distance(x, y),
+    projectMove: (id: number, time: number) => tag.project(id, time),
+    dribble: () => soccer.dribble(),
+    rotateAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
+    shoot: () => soccer.shoot(),
+    trackPosition: (id: number) => soccer.trackPosition(id),
+    trackRotation: (id: number) => soccer.trackRotation(id)
   };
 }
