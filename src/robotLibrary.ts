@@ -179,6 +179,10 @@ function robotLibrary(config: any) {
             } else {
               runnerResult.onStopped();
             }
+          },
+          pauseAndPrompt: function(msg: string) {
+            return gets.runnerResult().runner.pauseImmediate(() =>
+              this.resume(window.prompt(msg) || ''));
           }
         },
         maze: any = { // Maze activity.
@@ -473,6 +477,7 @@ function robotLibrary(config: any) {
 
       return commsExec.pauseWaitAndSend(1);
     },
+    prompt: (msg: string) => commsExec.pauseAndPrompt(msg),
     wait: (time: number) => commsExec.pauseWaitAndSend(time),
     queryWorld: () => commsExec.pauseAndSend({}),
     filterBall: () => world ? gets.ball() : {},

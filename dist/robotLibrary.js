@@ -163,6 +163,9 @@ function robotLibrary(config) {
             else {
                 runnerResult.onStopped();
             }
+        },
+        pauseAndPrompt: function (msg) {
+            return gets.runnerResult().runner.pauseImmediate(() => this.resume(window.prompt(msg) || ''));
         }
     }, maze = {
         _snapAngle: () => {
@@ -421,6 +424,7 @@ function robotLibrary(config) {
             sslVisionId = id;
             return commsExec.pauseWaitAndSend(1);
         },
+        prompt: (msg) => commsExec.pauseAndPrompt(msg),
         wait: (time) => commsExec.pauseWaitAndSend(time),
         queryWorld: () => commsExec.pauseAndSend({}),
         filterBall: () => world ? gets.ball() : {},
