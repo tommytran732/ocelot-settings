@@ -162,6 +162,12 @@ function robotLibrary(config: any) {
           pauseAndSend: function(payload: object) {
             return gets.runnerResult().runner.pauseImmediate(() => this.send(payload));
           },
+          pauseWaitAndSend: function(time: number) {
+            time = checks.args(0, 0, 0, time)[3];
+
+            return gets.runnerResult().runner.pauseImmediate(() => window.setTimeout(() =>
+              this.send({}), (time * 1000) - 100));
+          },
           resume: (value: any, isError: boolean = false) => {
             const runnerResult: any = gets.runnerResult();
 
@@ -465,8 +471,9 @@ function robotLibrary(config: any) {
       dssBall = Boolean(dss);
       sslVisionId = id;
 
-      return commsExec.pauseAndSend({});
+      return commsExec.pauseWaitAndSend(1);
     },
+    wait: (time: number) => commsExec.pauseWaitAndSend(time),
     queryWorld: () => commsExec.pauseAndSend({}),
     filterBall: () => world ? gets.ball() : {},
     filterBot: (id: number = sslVisionId) => (world && !checks.id(id)) ?
