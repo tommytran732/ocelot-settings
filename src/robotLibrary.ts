@@ -1,13 +1,13 @@
 function robotLibrary(config: any) {
   const enum Direction { Left, Right, Center }
 
-  let approach: Direction = Direction.Center,
-      returnFilter: any[] = [],
-      sslVisionId: number = -1,
-      dssBall: boolean,
-      lastUpdate: number,
+  let dssBall: boolean,
       self: any,
-      world: any;
+      world: any,
+      approach: Direction = Direction.Center,
+      lastUpdate: number = 0,
+      returnFilter: any[] = [],
+      sslVisionId: number = -1;
 
   const MIN_X: number = -1700, MAX_X: number = 1700, MIN_Y: number = -1100, MAX_Y: number = 1100,
         MIN_POST: number = -400, MAX_POST: number = 400,
@@ -113,18 +113,18 @@ function robotLibrary(config: any) {
           },
           returnVal: function() {
             if (returnFilter.length) {
-              let toReturn: number = 0;
+              let val: number;
 
-              if (returnFilter[0]) {
+              if (returnFilter[0] === true) {
                 checks.id(returnFilter[1]);
-                toReturn = (returnFilter[2] === 'pTheta' || returnFilter[2] === 'vTheta') ?
+                val = (returnFilter[2] === 'pTheta' || returnFilter[2] === 'vTheta') ?
                   angles.toDegrees(this.bot(returnFilter[1])[returnFilter[2]]) :
                   this.bot(returnFilter[1])[returnFilter[2]];
-              } else {
-                toReturn = world[returnFilter[2]];
+              } else if (returnFilter[0] === false) {
+                val = world[returnFilter[2]];
               }
 
-              return toReturn;
+              return val;
             }
           },
           runnerResult: () => {
@@ -172,8 +172,7 @@ function robotLibrary(config: any) {
           },
           setFilterAndGet: function(filter: any[]) {
             returnFilter = filter;
-            return (!lastUpdate || (Date.now() > lastUpdate + 100)) ?
-              this.pauseAndSend({}) : gets.returnVal();
+            return (Date.now() > lastUpdate + 100) ? this.pauseAndSend({}) : gets.returnVal();
           }
         },
         maze: any = { // Maze activity.
@@ -462,6 +461,8 @@ function robotLibrary(config: any) {
   }
 
   return { // Methods exposed in client library.
+    prompt: (msg: string) => commsExec.pauseAndPrompt(msg),
+    wait: (time: number) => commsExec.pauseWaitAndSend(time),
     setId: (id: number, dss: boolean = true) => {
       checks.id(id);
       dssBall = Boolean(dss);
@@ -479,8 +480,6 @@ function robotLibrary(config: any) {
     getBotVelX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
     getBotVelY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
     getBotVelAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
-    prompt: (msg: string) => commsExec.pauseAndPrompt(msg),
-    wait: (time: number) => commsExec.pauseWaitAndSend(time),
     moveForward: () => maze.moveForward(),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),

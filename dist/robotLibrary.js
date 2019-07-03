@@ -1,5 +1,5 @@
 function robotLibrary(config) {
-    let approach = 2, returnFilter = [], sslVisionId = -1, dssBall, lastUpdate, self, world;
+    let dssBall, self, world, approach = 2, lastUpdate = 0, returnFilter = [], sslVisionId = -1;
     const MIN_X = -1700, MAX_X = 1700, MIN_Y = -1100, MAX_Y = 1100, MIN_POST = -400, MAX_POST = 400, mQ = [], angles = {
         toDegrees: (angle) => angle * (180 / Math.PI),
         toRadians: (angle) => angle * (Math.PI / 180)
@@ -101,17 +101,17 @@ function robotLibrary(config) {
         },
         returnVal: function () {
             if (returnFilter.length) {
-                let toReturn = 0;
-                if (returnFilter[0]) {
+                let val;
+                if (returnFilter[0] === true) {
                     checks.id(returnFilter[1]);
-                    toReturn = (returnFilter[2] === 'pTheta' || returnFilter[2] === 'vTheta') ?
+                    val = (returnFilter[2] === 'pTheta' || returnFilter[2] === 'vTheta') ?
                         angles.toDegrees(this.bot(returnFilter[1])[returnFilter[2]]) :
                         this.bot(returnFilter[1])[returnFilter[2]];
                 }
-                else {
-                    toReturn = world[returnFilter[2]];
+                else if (returnFilter[0] === false) {
+                    val = world[returnFilter[2]];
                 }
-                return toReturn;
+                return val;
             }
         },
         runnerResult: () => {
@@ -156,8 +156,7 @@ function robotLibrary(config) {
         },
         setFilterAndGet: function (filter) {
             returnFilter = filter;
-            return (!lastUpdate || (Date.now() > lastUpdate + 100)) ?
-                this.pauseAndSend({}) : gets.returnVal();
+            return (Date.now() > lastUpdate + 100) ? this.pauseAndSend({}) : gets.returnVal();
         }
     }, maze = {
         _snapAngle: () => {
@@ -411,6 +410,8 @@ function robotLibrary(config) {
         };
     }
     return {
+        prompt: (msg) => commsExec.pauseAndPrompt(msg),
+        wait: (time) => commsExec.pauseWaitAndSend(time),
         setId: (id, dss = true) => {
             checks.id(id);
             dssBall = Boolean(dss);
@@ -427,8 +428,6 @@ function robotLibrary(config) {
         getBotVelX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
         getBotVelY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
         getBotVelAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
-        prompt: (msg) => commsExec.pauseAndPrompt(msg),
-        wait: (time) => commsExec.pauseWaitAndSend(time),
         moveForward: () => maze.moveForward(),
         turnLeft: () => maze.turn(0),
         turnRight: () => maze.turn(1),
