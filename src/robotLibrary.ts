@@ -2,8 +2,10 @@ function robotLibrary(config: any) {
   const enum Direction { Left, Right, Center }
 
   let approach: Direction = Direction.Center,
+      returnFilter: any[] = [],
       sslVisionId: number = -1,
       dssBall: boolean,
+      lastUpdate: number,
       self: any,
       world: any;
 
@@ -11,38 +13,8 @@ function robotLibrary(config: any) {
         MIN_POST: number = -400, MAX_POST: number = 400,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         angles: any = {
-          toDegrees: (bot: any) => {
-            return {
-              id: bot.id,
-              pX: bot.pX,
-              pY: bot.pY,
-              pAngle: bot.pTheta * (180 / Math.PI),
-              vX: bot.vX,
-              vY: bot.vY,
-              vAngle: bot.vTheta * (180 / Math.PI),
-            };
-          },
-          toRadians: (angle: number) => angle * (Math.PI / 180),
-          worldToDegrees: function() {
-            const newWorld: any = {
-              pX: world.pX,
-              pY: world.pY,
-              vX: world.vX,
-              vY: world.vY
-            };
-
-            if (world.ourBots) {
-              newWorld.ourBots = [];
-              world.ourBots.forEach(bot => newWorld.ourBots.push(this.toDegrees(bot)));
-            }
-
-            if (world.theirBots) {
-              newWorld.theirBots = [];
-              world.theirBots.forEach(bot => newWorld.theirBots.push(this.toDegrees(bot)));
-            }
-
-            return newWorld;
-          }
+          toDegrees: (angle: number) => angle * (180 / Math.PI),
+          toRadians: (angle: number) => angle * (Math.PI / 180)
         },
         checks: any = { // Check things.
           args: (x: number, y: number, theta: number, time: number) => {
@@ -118,14 +90,6 @@ function robotLibrary(config: any) {
           }
         },
         gets: any = { // Get things.
-          ball: () => {
-            return {
-              pX: world.pX,
-              pY: world.pY,
-              vX: world.vX,
-              vY: world.vY
-            };
-          },
           payload: (cmd: any) => {
             if (cmd._fill) { // For now we can assume this is a kick command.
               if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
@@ -145,6 +109,22 @@ function robotLibrary(config: any) {
               throw Error('Robot not found: ' + id);
             } else {
               return botFound;
+            }
+          },
+          returnVal: function() {
+            if (returnFilter.length) {
+              let toReturn: number = 0;
+
+              if (returnFilter[0]) {
+                checks.id(returnFilter[1]);
+                toReturn = (returnFilter[2] === 'pTheta' || returnFilter[2] === 'vTheta') ?
+                  angles.toDegrees(this.bot(returnFilter[1])[returnFilter[2]]) :
+                  this.bot(returnFilter[1])[returnFilter[2]];
+              } else {
+                toReturn = world[returnFilter[2]];
+              }
+
+              return toReturn;
             }
           },
           runnerResult: () => {
@@ -172,10 +152,16 @@ function robotLibrary(config: any) {
             const runnerResult: any = gets.runnerResult();
 
             if (runnerResult.isRunning && runnerResult.runner.k) {
-              runnerResult.runner.continueImmediate({
-                type: isError ? 'exception' : 'normal',
-                stack: [], value
-              });
+              const resumeContent: any = { stack: [] };
+              if (isError) {
+                resumeContent.type = 'exception';
+                resumeContent.value = value;
+              } else {
+                resumeContent.type = 'normal';
+                resumeContent.value = typeof value === 'object' ? gets.returnVal() : value;
+              }
+              returnFilter = [];
+              runnerResult.runner.continueImmediate(resumeContent);
             } else {
               runnerResult.onStopped();
             }
@@ -183,6 +169,11 @@ function robotLibrary(config: any) {
           pauseAndPrompt: function(msg: string) {
             return gets.runnerResult().runner.pauseImmediate(() =>
               this.resume(window.prompt(msg) || ''));
+          },
+          setFilterAndGet: function(filter: any[]) {
+            returnFilter = filter;
+            return (!lastUpdate || (Date.now() > lastUpdate + 100)) ?
+              this.pauseAndSend({}) : gets.returnVal();
           }
         },
         maze: any = { // Maze activity.
@@ -458,10 +449,11 @@ function robotLibrary(config: any) {
       try {
         world = checks.msg(JSON.parse(e.data));
         self = sslVisionId < 0 ? self : gets.bot();
+        lastUpdate = Date.now();
         if (mQ.length) {
           commsExec.send(gets.payload(mQ.shift()));
         } else {
-          commsExec.resume(angles.worldToDegrees());
+          commsExec.resume(world);
         }
       } catch (e) {
         commsExec.resume(e, true);
@@ -477,12 +469,18 @@ function robotLibrary(config: any) {
 
       return commsExec.pauseWaitAndSend(1);
     },
+    getBallPosX: () => commsExec.setFilterAndGet([false, -1, 'pX']),
+    getBallPosY: () => commsExec.setFilterAndGet([false, -1, 'pY']),
+    getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
+    getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
+    getBotPosX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
+    getBotPosY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
+    getBotPosAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
+    getBotVelX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
+    getBotVelY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
+    getBotVelAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
     prompt: (msg: string) => commsExec.pauseAndPrompt(msg),
     wait: (time: number) => commsExec.pauseWaitAndSend(time),
-    queryWorld: () => commsExec.pauseAndSend({}),
-    filterBall: () => world ? gets.ball() : {},
-    filterBot: (id: number = sslVisionId) => (world && !checks.id(id)) ?
-      angles.toDegrees(gets.bot(id)) : {},
     moveForward: () => maze.moveForward(),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),

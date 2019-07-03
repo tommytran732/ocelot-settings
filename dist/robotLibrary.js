@@ -1,35 +1,8 @@
 function robotLibrary(config) {
-    let approach = 2, sslVisionId = -1, dssBall, self, world;
+    let approach = 2, returnFilter = [], sslVisionId = -1, dssBall, lastUpdate, self, world;
     const MIN_X = -1700, MAX_X = 1700, MIN_Y = -1100, MAX_Y = 1100, MIN_POST = -400, MAX_POST = 400, mQ = [], angles = {
-        toDegrees: (bot) => {
-            return {
-                id: bot.id,
-                pX: bot.pX,
-                pY: bot.pY,
-                pAngle: bot.pTheta * (180 / Math.PI),
-                vX: bot.vX,
-                vY: bot.vY,
-                vAngle: bot.vTheta * (180 / Math.PI),
-            };
-        },
-        toRadians: (angle) => angle * (Math.PI / 180),
-        worldToDegrees: function () {
-            const newWorld = {
-                pX: world.pX,
-                pY: world.pY,
-                vX: world.vX,
-                vY: world.vY
-            };
-            if (world.ourBots) {
-                newWorld.ourBots = [];
-                world.ourBots.forEach(bot => newWorld.ourBots.push(this.toDegrees(bot)));
-            }
-            if (world.theirBots) {
-                newWorld.theirBots = [];
-                world.theirBots.forEach(bot => newWorld.theirBots.push(this.toDegrees(bot)));
-            }
-            return newWorld;
-        }
+        toDegrees: (angle) => angle * (180 / Math.PI),
+        toRadians: (angle) => angle * (Math.PI / 180)
     }, checks = {
         args: (x, y, theta, time) => {
             if (typeof x !== 'number' || typeof y !== 'number' || typeof theta !== 'number' ||
@@ -106,14 +79,6 @@ function robotLibrary(config) {
             }
         }
     }, gets = {
-        ball: () => {
-            return {
-                pX: world.pX,
-                pY: world.pY,
-                vX: world.vX,
-                vY: world.vY
-            };
-        },
         payload: (cmd) => {
             if (cmd._fill) {
                 if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
@@ -132,6 +97,21 @@ function robotLibrary(config) {
             }
             else {
                 return botFound;
+            }
+        },
+        returnVal: function () {
+            if (returnFilter.length) {
+                let toReturn = 0;
+                if (returnFilter[0]) {
+                    checks.id(returnFilter[1]);
+                    toReturn = (returnFilter[2] === 'pTheta' || returnFilter[2] === 'vTheta') ?
+                        angles.toDegrees(this.bot(returnFilter[1])[returnFilter[2]]) :
+                        this.bot(returnFilter[1])[returnFilter[2]];
+                }
+                else {
+                    toReturn = world[returnFilter[2]];
+                }
+                return toReturn;
             }
         },
         runnerResult: () => {
@@ -155,10 +135,17 @@ function robotLibrary(config) {
         resume: (value, isError = false) => {
             const runnerResult = gets.runnerResult();
             if (runnerResult.isRunning && runnerResult.runner.k) {
-                runnerResult.runner.continueImmediate({
-                    type: isError ? 'exception' : 'normal',
-                    stack: [], value
-                });
+                const resumeContent = { stack: [] };
+                if (isError) {
+                    resumeContent.type = 'exception';
+                    resumeContent.value = value;
+                }
+                else {
+                    resumeContent.type = 'normal';
+                    resumeContent.value = typeof value === 'object' ? gets.returnVal() : value;
+                }
+                returnFilter = [];
+                runnerResult.runner.continueImmediate(resumeContent);
             }
             else {
                 runnerResult.onStopped();
@@ -166,6 +153,11 @@ function robotLibrary(config) {
         },
         pauseAndPrompt: function (msg) {
             return gets.runnerResult().runner.pauseImmediate(() => this.resume(window.prompt(msg) || ''));
+        },
+        setFilterAndGet: function (filter) {
+            returnFilter = filter;
+            return (!lastUpdate || (Date.now() > lastUpdate + 100)) ?
+                this.pauseAndSend({}) : gets.returnVal();
         }
     }, maze = {
         _snapAngle: () => {
@@ -405,11 +397,12 @@ function robotLibrary(config) {
             try {
                 world = checks.msg(JSON.parse(e.data));
                 self = sslVisionId < 0 ? self : gets.bot();
+                lastUpdate = Date.now();
                 if (mQ.length) {
                     commsExec.send(gets.payload(mQ.shift()));
                 }
                 else {
-                    commsExec.resume(angles.worldToDegrees());
+                    commsExec.resume(world);
                 }
             }
             catch (e) {
@@ -424,12 +417,18 @@ function robotLibrary(config) {
             sslVisionId = id;
             return commsExec.pauseWaitAndSend(1);
         },
+        getBallPosX: () => commsExec.setFilterAndGet([false, -1, 'pX']),
+        getBallPosY: () => commsExec.setFilterAndGet([false, -1, 'pY']),
+        getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
+        getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
+        getBotPosX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
+        getBotPosY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
+        getBotPosAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
+        getBotVelX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
+        getBotVelY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
+        getBotVelAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
         prompt: (msg) => commsExec.pauseAndPrompt(msg),
         wait: (time) => commsExec.pauseWaitAndSend(time),
-        queryWorld: () => commsExec.pauseAndSend({}),
-        filterBall: () => world ? gets.ball() : {},
-        filterBot: (id = sslVisionId) => (world && !checks.id(id)) ?
-            angles.toDegrees(gets.bot(id)) : {},
         moveForward: () => maze.moveForward(),
         turnLeft: () => maze.turn(0),
         turnRight: () => maze.turn(1),
