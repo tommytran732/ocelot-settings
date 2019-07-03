@@ -146,7 +146,7 @@ function robotLibrary(config: any) {
             time = checks.args(0, 0, 0, time)[3];
 
             return gets.runnerResult().runner.pauseImmediate(() => window.setTimeout(() =>
-              this.send({}), (time * 1000) - 100));
+              this.send({}), time * 1000));
           },
           resume: (value: any, isError: boolean = false) => {
             const runnerResult: any = gets.runnerResult();
@@ -357,7 +357,7 @@ function robotLibrary(config: any) {
 
             return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
           },
-          move: (x: number, y: number, theta: number) => {
+          moveTo: (x: number, y: number, theta: number) => {
             checks.id();
             [x, y, theta] = checks.args(x, y, theta, 0);
 
@@ -495,11 +495,11 @@ function robotLibrary(config: any) {
     blockRight: () => pk.block(Direction.Right),
     blockCenter: () => pk.block(Direction.Center),
     blockRandom: () => pk.blockRandom(),
-    move: (x: number, y: number, theta: number) => tag.move(x, y, angles.toRadians(theta)),
-    moveXY: (x: number, y: number) => tag.move(x, y, self.pTheta),
-    moveX: (x: number) => tag.move(x, self.pY, self.pTheta),
-    moveY: (y: number) => tag.move(self.pX, y, self.pTheta),
-    rotate: (theta: number) => tag.move(self.pX, self.pY, angles.toRadians(theta)),
+    moveTo: (x: number, y: number, theta: number) => tag.moveTo(x, y, angles.toRadians(theta)),
+    moveToXY: (x: number, y: number) => tag.moveTo(x, y, self.pTheta),
+    moveToX: (x: number) => tag.moveTo(x, self.pY, self.pTheta),
+    moveToY: (y: number) => tag.moveTo(self.pX, y, self.pTheta),
+    rotateTo: (theta: number) => tag.moveTo(self.pX, self.pY, angles.toRadians(theta)),
     distanceFrom: (x: number, y: number) => tag.distance(x, y),
     projectMove: (id: number, time: number) => tag.project(id, time),
     dribble: () => soccer.dribble(),
