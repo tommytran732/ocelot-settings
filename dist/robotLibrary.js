@@ -253,6 +253,12 @@ function robotLibrary(config) {
             });
         }
     }, pk = {
+        _willMiss: (direction) => {
+            const rand = Math.random();
+            return ((direction === 0 && approach === 1) ||
+                (direction === 1 && approach === 0)) ?
+                rand < .3 : rand < .1;
+        },
         aim: (direction) => {
             checks.id();
             let y, theta;
@@ -287,12 +293,6 @@ function robotLibrary(config) {
             return rand < .333 ? this.block(0) :
                 (rand < .667 ? this.block(2) : this.block(1));
         },
-        willMiss: (direction) => {
-            const rand = Math.random();
-            return ((direction === 0 && approach === 1) ||
-                (direction === 1 && approach === 0)) ?
-                rand < .3 : rand < .1;
-        },
         shoot: function (kickDirection = approach) {
             checks.id();
             let wide, theta = approach === 0 ? Math.PI / -12 :
@@ -302,7 +302,7 @@ function robotLibrary(config) {
                 y: world.pY + (120 * Math.sin(theta - Math.PI)),
             });
             if (kickDirection !== approach) {
-                wide = this.willMiss(kickDirection);
+                wide = this._willMiss(kickDirection);
                 switch (kickDirection) {
                     case 0:
                         theta = Math.PI / (wide ? -10 : -12);
@@ -327,15 +327,11 @@ function robotLibrary(config) {
             [x, y] = checks.args(x, y, 0, 0);
             return commsExec.setFilterAndGet([() => Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2))]);
         },
-        moveTo: (x, y, theta) => {
-            checks.id();
-            [x, y, theta] = checks.args(x, y, theta, 0);
-            return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
-        },
-        moveBy: (x, y, theta) => {
-            checks.id();
-            [x, y, theta] = checks.args(x, y, theta, 0);
-            [x, y, theta] = checks.args(self.pX + x, self.pY + y, self.pTheta + theta, 0);
+        move: (x, y, theta, isRelative = false) => {
+            checks.id() || checks.args(x, y, theta, 0);
+            [x, y, theta] = isRelative ?
+                checks.args(self.pX + x, self.pY + y, self.pTheta + theta, 0) :
+                checks.args(x, y, theta, 0);
             return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
         },
         project: (id, time) => {
@@ -451,16 +447,16 @@ function robotLibrary(config) {
         blockRight: () => pk.block(1),
         blockCenter: () => pk.block(2),
         blockRandom: () => pk.blockRandom(),
-        moveTo: (x, y, theta) => tag.moveTo(x, y, angles.toRadians(theta)),
-        moveToXY: (x, y) => tag.moveTo(x, y, self.pTheta),
-        moveToX: (x) => tag.moveTo(x, self.pY, self.pTheta),
-        moveToY: (y) => tag.moveTo(self.pX, y, self.pTheta),
-        rotateTo: (theta) => tag.moveTo(self.pX, self.pY, angles.toRadians(theta)),
-        moveBy: (x, y, theta) => tag.moveBy(x, y, angles.toRadians(theta)),
-        moveByXY: (x, y) => tag.moveBy(x, y, 0),
-        moveByX: (x) => tag.moveBy(x, 0, 0),
-        moveByY: (y) => tag.moveBy(0, y, 0),
-        rotateBy: (theta) => tag.moveBy(0, 0, angles.toRadians(theta)),
+        moveTo: (x, y, theta) => tag.move(x, y, angles.toRadians(theta)),
+        moveToXY: (x, y) => tag.move(x, y, self.pTheta),
+        moveToX: (x) => tag.move(x, self.pY, self.pTheta),
+        moveToY: (y) => tag.move(self.pX, y, self.pTheta),
+        turnTo: (theta) => tag.move(self.pX, self.pY, angles.toRadians(theta)),
+        moveBy: (x, y, theta) => tag.move(x, y, angles.toRadians(theta), true),
+        moveByXY: (x, y) => tag.move(x, y, 0, true),
+        moveByX: (x) => tag.move(x, 0, 0, true),
+        moveByY: (y) => tag.move(0, y, 0, true),
+        turnBy: (theta) => tag.move(0, 0, angles.toRadians(theta), true),
         distanceFrom: (x, y) => tag.distance(x, y),
         projectMove: (id, time) => tag.project(id, time),
         dribble: () => soccer.dribble(),

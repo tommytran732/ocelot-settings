@@ -266,6 +266,13 @@ function robotLibrary(config: any) {
           }
         },
         pk: any = { // PK activity.
+          _willMiss: (direction: Direction) => {
+            const rand: number = Math.random();
+
+            return ((direction === Direction.Left && approach === Direction.Right) ||
+                    (direction === Direction.Right && approach === Direction.Left)) ?
+                    rand < .3 : rand < .1;
+          },
           aim: (direction: Direction) => {
             checks.id();
 
@@ -307,13 +314,6 @@ function robotLibrary(config: any) {
             return rand < .333 ? this.block(Direction.Left) :
               (rand < .667 ? this.block(Direction.Center) : this.block(Direction.Right));
           },
-          willMiss: (direction: Direction) => {
-            const rand: number = Math.random();
-
-            return ((direction === Direction.Left && approach === Direction.Right) ||
-                    (direction === Direction.Right && approach === Direction.Left)) ?
-                    rand < .3 : rand < .1;
-          },
           shoot: function(kickDirection: Direction = approach) {
             checks.id();
 
@@ -327,7 +327,7 @@ function robotLibrary(config: any) {
             });
 
             if (kickDirection !== approach) {
-              wide = this.willMiss(kickDirection);
+              wide = this._willMiss(kickDirection);
 
               switch (kickDirection) {
                 case Direction.Left:
@@ -359,16 +359,11 @@ function robotLibrary(config: any) {
             return commsExec.setFilterAndGet([() =>
               Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2))]);
           },
-          moveTo: (x: number, y: number, theta: number) => {
-            checks.id();
-            [x, y, theta] = checks.args(x, y, theta, 0);
-
-            return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
-          },
-          moveBy: (x: number, y: number, theta: number) => {
-            checks.id();
-            [x, y, theta] = checks.args(x, y, theta, 0);
-            [x, y, theta] = checks.args(self.pX + x, self.pY + y, self.pTheta + theta, 0);
+          move: (x: number, y: number, theta: number, isRelative: boolean = false) => {
+            checks.id() || checks.args(x, y, theta, 0);
+            [x, y, theta] = isRelative ?
+              checks.args(self.pX + x, self.pY + y, self.pTheta + theta, 0) :
+              checks.args(x, y, theta, 0);
 
             return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
           },
@@ -504,16 +499,16 @@ function robotLibrary(config: any) {
     blockRight: () => pk.block(Direction.Right),
     blockCenter: () => pk.block(Direction.Center),
     blockRandom: () => pk.blockRandom(),
-    moveTo: (x: number, y: number, theta: number) => tag.moveTo(x, y, angles.toRadians(theta)),
-    moveToXY: (x: number, y: number) => tag.moveTo(x, y, self.pTheta),
-    moveToX: (x: number) => tag.moveTo(x, self.pY, self.pTheta),
-    moveToY: (y: number) => tag.moveTo(self.pX, y, self.pTheta),
-    rotateTo: (theta: number) => tag.moveTo(self.pX, self.pY, angles.toRadians(theta)),
-    moveBy: (x: number, y: number, theta: number) => tag.moveBy(x, y, angles.toRadians(theta)),
-    moveByXY: (x: number, y: number) => tag.moveBy(x, y, 0),
-    moveByX: (x: number) => tag.moveBy(x, 0, 0),
-    moveByY: (y: number) => tag.moveBy(0, y, 0),
-    rotateBy: (theta: number) => tag.moveBy(0, 0, angles.toRadians(theta)),
+    moveTo: (x: number, y: number, theta: number) => tag.move(x, y, angles.toRadians(theta)),
+    moveToXY: (x: number, y: number) => tag.move(x, y, self.pTheta),
+    moveToX: (x: number) => tag.move(x, self.pY, self.pTheta),
+    moveToY: (y: number) => tag.move(self.pX, y, self.pTheta),
+    turnTo: (theta: number) => tag.move(self.pX, self.pY, angles.toRadians(theta)),
+    moveBy: (x: number, y: number, theta: number) => tag.move(x, y, angles.toRadians(theta), true),
+    moveByXY: (x: number, y: number) => tag.move(x, y, 0, true),
+    moveByX: (x: number) => tag.move(x, 0, 0, true),
+    moveByY: (y: number) => tag.move(0, y, 0, true),
+    turnBy: (theta: number) => tag.move(0, 0, angles.toRadians(theta), true),
     distanceFrom: (x: number, y: number) => tag.distance(x, y),
     projectMove: (id: number, time: number) => tag.project(id, time),
     dribble: () => soccer.dribble(),
