@@ -48,6 +48,12 @@ function robotLibrary(config: any) {
 
             return [x, y, theta, time < 0 ? 0 : time];
           },
+          bounds: () => {
+            if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
+                world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110 ) {
+              throw Error('Ball out of bounds.');
+            }
+          },
           direction: function() {
             const theta: number = this.args(0, 0, self.pTheta, 0)[2],
                   start: number = theta - (Math.PI / 4),
@@ -60,17 +66,6 @@ function robotLibrary(config: any) {
               throw Error('Robot must be facing the ball.');
             }
           },
-          bounds: () => {
-            if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
-                world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110 ) {
-              throw Error('Ball out of bounds.');
-            }
-          },
-          id: (id: number = sslVisionId) => {
-            if (!Number.isInteger(id) || id < 0 || id > 9) {
-              throw Error('Invalid robot number: ' + id);
-            }
-          },
           dist: () => {
             const dToBall: number = Math.sqrt(Math.pow(world.pX - self.pX, 2) +
                 Math.pow(world.pY - self.pY, 2));
@@ -79,6 +74,11 @@ function robotLibrary(config: any) {
               throw Error(Math.ceil(dToBall) + 'mm is too far from ball; must be within 300.');
             } else {
               return dToBall > 150;
+            }
+          },
+          id: (id: number = sslVisionId) => {
+            if (!Number.isInteger(id) || id < 0 || id > 9) {
+              throw Error('Invalid robot number: ' + id);
             }
           },
           msg: (msg: any) => {
@@ -90,6 +90,16 @@ function robotLibrary(config: any) {
           }
         },
         gets: any = { // Get things.
+          bot: (id: number = sslVisionId) => {
+            const botFound: any = (world.ourBots && world.ourBots.find(bot => bot.id === id)) ||
+                                  (world.theirBots && world.theirBots.find(bot => bot.id === id));
+
+            if (!botFound) {
+              throw Error('Robot not found: ' + id);
+            } else {
+              return botFound;
+            }
+          },
           payload: (cmd: any) => {
             if (cmd._fill) { // For now we can assume this is a kick command.
               if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
@@ -100,16 +110,6 @@ function robotLibrary(config: any) {
             }
 
             return cmd;
-          },
-          bot: (id: number = sslVisionId) => {
-            const botFound: any = (world.ourBots && world.ourBots.find(bot => bot.id === id)) ||
-                                  (world.theirBots && world.theirBots.find(bot => bot.id === id));
-
-            if (!botFound) {
-              throw Error('Robot not found: ' + id);
-            } else {
-              return botFound;
-            }
           },
           returnVal: function() {
             if (returnFilter.length) {
@@ -394,11 +394,6 @@ function robotLibrary(config: any) {
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
-          shoot: function(kick: number = 1) {
-            this._align(kick);
-
-            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
-          },
           dribble: function(kick: number = 0) {
             this._align(kick);
             mQ.push({ sslVisionId, _fill: this._fill });
@@ -414,6 +409,11 @@ function robotLibrary(config: any) {
               y: world.pY + (120 * Math.sin(theta)),
               theta: checks.args(0, 0, theta - Math.PI, 0)[2]
             });
+          },
+          shoot: function(kick: number = 1) {
+            this._align(kick);
+
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           },
           trackPosition: (id: number) => {
             checks.id() || checks.id(id);
@@ -467,7 +467,6 @@ function robotLibrary(config: any) {
 
   return { // Methods exposed in client library.
     prompt: (msg: string) => commsExec.pauseAndPrompt(msg),
-    wait: (time: number) => commsExec.pauseWaitAndSend(time),
     setId: (id: number, dss: boolean = true) => {
       checks.id(id);
       dssBall = Boolean(dss);
@@ -475,16 +474,17 @@ function robotLibrary(config: any) {
 
       return commsExec.pauseWaitAndSend(1);
     },
+    getPosX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
+    getPosY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
+    getPosAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
+    getVelX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
+    getVelY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
+    getVelAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
     getBallPosX: () => commsExec.setFilterAndGet([false, -1, 'pX']),
     getBallPosY: () => commsExec.setFilterAndGet([false, -1, 'pY']),
     getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
     getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
-    getBotPosX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
-    getBotPosY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
-    getBotPosAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
-    getBotVelX: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
-    getBotVelY: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
-    getBotVelAngle: (id: number = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
+    wait: (time: number) => commsExec.pauseWaitAndSend(time),
     moveForward: () => maze.moveForward(),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),
@@ -499,6 +499,7 @@ function robotLibrary(config: any) {
     blockRight: () => pk.block(Direction.Right),
     blockCenter: () => pk.block(Direction.Center),
     blockRandom: () => pk.blockRandom(),
+    distanceTo: (x: number, y: number) => tag.distance(x, y),
     moveTo: (x: number, y: number, theta: number) => tag.move(x, y, angles.toRadians(theta)),
     moveToXY: (x: number, y: number) => tag.move(x, y, self.pTheta),
     moveToX: (x: number) => tag.move(x, self.pY, self.pTheta),
@@ -511,10 +512,9 @@ function robotLibrary(config: any) {
     turnBy: (theta: number) => tag.move(0, 0, angles.toRadians(theta), true),
     projectX: (id: number, time: number) => tag.project(id, time, true),
     projectY: (id: number, time: number) => tag.project(id, time),
-    distanceTo: (x: number, y: number) => tag.distance(x, y),
+    turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
     dribble: () => soccer.dribble(),
     shoot: () => soccer.shoot(),
-    turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
     trackPosition: (id: number) => soccer.trackPosition(id),
     trackRotation: (id: number) => soccer.trackRotation(id)
   };

@@ -41,23 +41,18 @@ function robotLibrary(config) {
             }
             return [x, y, theta, time < 0 ? 0 : time];
         },
-        direction: function () {
-            const theta = this.args(0, 0, self.pTheta, 0)[2], start = theta - (Math.PI / 4), final = theta + (Math.PI / 4), angle = Math.atan2(world.pY - self.pY, world.pX - self.pX);
-            if ((angle < Math.min(start, final) || angle > Math.max(start, final)) &&
-                (Math.abs(angle) < 3 ||
-                    (-angle < Math.min(start, final) || -angle > Math.max(start, final)))) {
-                throw Error('Robot must be facing the ball.');
-            }
-        },
         bounds: () => {
             if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
                 world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110) {
                 throw Error('Ball out of bounds.');
             }
         },
-        id: (id = sslVisionId) => {
-            if (!Number.isInteger(id) || id < 0 || id > 9) {
-                throw Error('Invalid robot number: ' + id);
+        direction: function () {
+            const theta = this.args(0, 0, self.pTheta, 0)[2], start = theta - (Math.PI / 4), final = theta + (Math.PI / 4), angle = Math.atan2(world.pY - self.pY, world.pX - self.pX);
+            if ((angle < Math.min(start, final) || angle > Math.max(start, final)) &&
+                (Math.abs(angle) < 3 ||
+                    (-angle < Math.min(start, final) || -angle > Math.max(start, final)))) {
+                throw Error('Robot must be facing the ball.');
             }
         },
         dist: () => {
@@ -70,6 +65,11 @@ function robotLibrary(config) {
                 return dToBall > 150;
             }
         },
+        id: (id = sslVisionId) => {
+            if (!Number.isInteger(id) || id < 0 || id > 9) {
+                throw Error('Invalid robot number: ' + id);
+            }
+        },
         msg: (msg) => {
             if (!Object.keys(msg).length) {
                 throw Error('No data found; make sure your simulator is running.');
@@ -79,16 +79,6 @@ function robotLibrary(config) {
             }
         }
     }, gets = {
-        payload: (cmd) => {
-            if (cmd._fill) {
-                if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
-                    mQ.push(Object.assign({}, cmd));
-                }
-                cmd._fill();
-                delete cmd._fill;
-            }
-            return cmd;
-        },
         bot: (id = sslVisionId) => {
             const botFound = (world.ourBots && world.ourBots.find(bot => bot.id === id)) ||
                 (world.theirBots && world.theirBots.find(bot => bot.id === id));
@@ -98,6 +88,16 @@ function robotLibrary(config) {
             else {
                 return botFound;
             }
+        },
+        payload: (cmd) => {
+            if (cmd._fill) {
+                if (Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1) {
+                    mQ.push(Object.assign({}, cmd));
+                }
+                cmd._fill();
+                delete cmd._fill;
+            }
+            return cmd;
         },
         returnVal: function () {
             if (returnFilter.length) {
@@ -355,10 +355,6 @@ function robotLibrary(config) {
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
         },
-        shoot: function (kick = 1) {
-            this._align(kick);
-            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
-        },
         dribble: function (kick = 0) {
             this._align(kick);
             mQ.push({ sslVisionId, _fill: this._fill });
@@ -372,6 +368,10 @@ function robotLibrary(config) {
                 y: world.pY + (120 * Math.sin(theta)),
                 theta: checks.args(0, 0, theta - Math.PI, 0)[2]
             });
+        },
+        shoot: function (kick = 1) {
+            this._align(kick);
+            return commsExec.pauseAndSend(gets.payload(mQ.shift()));
         },
         trackPosition: (id) => {
             checks.id() || checks.id(id);
@@ -418,23 +418,23 @@ function robotLibrary(config) {
     }
     return {
         prompt: (msg) => commsExec.pauseAndPrompt(msg),
-        wait: (time) => commsExec.pauseWaitAndSend(time),
         setId: (id, dss = true) => {
             checks.id(id);
             dssBall = Boolean(dss);
             sslVisionId = id;
             return commsExec.pauseWaitAndSend(1);
         },
+        getPosX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
+        getPosY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
+        getPosAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
+        getVelX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
+        getVelY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
+        getVelAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
         getBallPosX: () => commsExec.setFilterAndGet([false, -1, 'pX']),
         getBallPosY: () => commsExec.setFilterAndGet([false, -1, 'pY']),
         getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
         getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
-        getBotPosX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
-        getBotPosY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
-        getBotPosAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
-        getBotVelX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vX']),
-        getBotVelY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vY']),
-        getBotVelAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'vTheta']),
+        wait: (time) => commsExec.pauseWaitAndSend(time),
         moveForward: () => maze.moveForward(),
         turnLeft: () => maze.turn(0),
         turnRight: () => maze.turn(1),
@@ -449,6 +449,7 @@ function robotLibrary(config) {
         blockRight: () => pk.block(1),
         blockCenter: () => pk.block(2),
         blockRandom: () => pk.blockRandom(),
+        distanceTo: (x, y) => tag.distance(x, y),
         moveTo: (x, y, theta) => tag.move(x, y, angles.toRadians(theta)),
         moveToXY: (x, y) => tag.move(x, y, self.pTheta),
         moveToX: (x) => tag.move(x, self.pY, self.pTheta),
@@ -461,10 +462,9 @@ function robotLibrary(config) {
         turnBy: (theta) => tag.move(0, 0, angles.toRadians(theta), true),
         projectX: (id, time) => tag.project(id, time, true),
         projectY: (id, time) => tag.project(id, time),
-        distanceTo: (x, y) => tag.distance(x, y),
+        turnAroundBall: (theta) => soccer.rotate(angles.toRadians(theta)),
         dribble: () => soccer.dribble(),
         shoot: () => soccer.shoot(),
-        turnAroundBall: (theta) => soccer.rotate(angles.toRadians(theta)),
         trackPosition: (id) => soccer.trackPosition(id),
         trackRotation: (id) => soccer.trackRotation(id)
     };
