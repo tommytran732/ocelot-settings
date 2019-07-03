@@ -122,6 +122,8 @@ function robotLibrary(config: any) {
                   this.bot(returnFilter[1])[returnFilter[2]];
               } else if (returnFilter[0] === false) {
                 val = world[returnFilter[2]];
+              } else {
+                val = returnFilter[0]();
               }
 
               return val;
@@ -354,7 +356,8 @@ function robotLibrary(config: any) {
             checks.id();
             [x, y] = checks.args(x, y, 0, 0);
 
-            return Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2));
+            return commsExec.setFilterAndGet([() =>
+              Math.sqrt(Math.pow(x - self.pX, 2) + Math.pow(y - self.pY, 2))]);
           },
           moveTo: (x: number, y: number, theta: number) => {
             checks.id();
