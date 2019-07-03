@@ -365,6 +365,13 @@ function robotLibrary(config: any) {
 
             return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
           },
+          moveBy: (x: number, y: number, theta: number) => {
+            checks.id();
+            [x, y, theta] = checks.args(x, y, theta, 0);
+            [x, y, theta] = checks.args(self.pX + x, self.pY + y, self.pTheta + theta, 0);
+
+            return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
+          },
           project: (id: number, time: number) => {
             checks.id() || checks.id(id);
             time = checks.args(0, 0, 0, time)[3];
@@ -502,6 +509,11 @@ function robotLibrary(config: any) {
     moveToX: (x: number) => tag.moveTo(x, self.pY, self.pTheta),
     moveToY: (y: number) => tag.moveTo(self.pX, y, self.pTheta),
     rotateTo: (theta: number) => tag.moveTo(self.pX, self.pY, angles.toRadians(theta)),
+    moveBy: (x: number, y: number, theta: number) => tag.moveBy(x, y, angles.toRadians(theta)),
+    moveByXY: (x: number, y: number) => tag.moveBy(x, y, 0),
+    moveByX: (x: number) => tag.moveBy(x, 0, 0),
+    moveByY: (y: number) => tag.moveBy(0, y, 0),
+    rotateBy: (theta: number) => tag.moveBy(0, 0, angles.toRadians(theta)),
     distanceFrom: (x: number, y: number) => tag.distance(x, y),
     projectMove: (id: number, time: number) => tag.project(id, time),
     dribble: () => soccer.dribble(),
