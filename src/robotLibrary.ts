@@ -367,15 +367,15 @@ function robotLibrary(config: any) {
 
             return commsExec.pauseAndSend({ sslVisionId, dssBall, x, y, theta });
           },
-          project: (id: number, time: number) => {
+          project: (id: number, time: number, isX: boolean = false) => {
             checks.id() || checks.id(id);
             time = checks.args(0, 0, 0, time)[3];
 
-            const bot: any = gets.bot(id),
-                  pX: number = bot.pX + (bot.vX * time),
-                  pY: number = bot.pY + (bot.vY * time);
+            return commsExec.setFilterAndGet([() => {
+              const bot: any = gets.bot(id);
 
-            return { pX, pY };
+              return isX ? (bot.pX + (bot.vX * time)) : (bot.pY + (bot.vY * time));
+            }]);
           }
         },
         soccer: any = { // Soccer activity.
@@ -509,11 +509,12 @@ function robotLibrary(config: any) {
     moveByX: (x: number) => tag.move(x, 0, 0, true),
     moveByY: (y: number) => tag.move(0, y, 0, true),
     turnBy: (theta: number) => tag.move(0, 0, angles.toRadians(theta), true),
-    distanceFrom: (x: number, y: number) => tag.distance(x, y),
-    projectMove: (id: number, time: number) => tag.project(id, time),
+    projectX: (id: number, time: number) => tag.project(id, time, true),
+    projectY: (id: number, time: number) => tag.project(id, time),
+    distanceTo: (x: number, y: number) => tag.distance(x, y),
     dribble: () => soccer.dribble(),
-    rotateAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
     shoot: () => soccer.shoot(),
+    turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
     trackPosition: (id: number) => soccer.trackPosition(id),
     trackRotation: (id: number) => soccer.trackRotation(id)
   };
