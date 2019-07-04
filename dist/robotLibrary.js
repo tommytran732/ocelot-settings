@@ -1,6 +1,6 @@
 function robotLibrary(config) {
     let dssBall, self, world, approach = 2, lastUpdate = 0, returnFilter = [], sslVisionId = -1;
-    const MIN_X = -1700, MAX_X = 1700, MIN_Y = -1100, MAX_Y = 1100, MIN_POST = -400, MAX_POST = 400, mQ = [], angles = {
+    const MIN_X = -1700, MAX_X = 1700, MIN_Y = -1200, MAX_Y = 1200, MIN_POST = -400, MAX_POST = 400, mQ = [], angles = {
         toDegrees: (angle) => angle * (180 / Math.PI),
         toRadians: (angle) => angle * (Math.PI / 180)
     }, checks = {
@@ -127,7 +127,9 @@ function robotLibrary(config) {
             }
         }
     }, commsExec = {
-        send: (payload) => config.ws.send(JSON.stringify(payload)),
+        pauseAndPrompt: function (msg) {
+            return gets.runnerResult().runner.pauseImmediate(() => this.resume(window.prompt(msg) || ''));
+        },
         pauseAndSend: function (payload) {
             return gets.runnerResult().runner.pauseImmediate(() => this.send(payload));
         },
@@ -154,9 +156,7 @@ function robotLibrary(config) {
                 runnerResult.onStopped();
             }
         },
-        pauseAndPrompt: function (msg) {
-            return gets.runnerResult().runner.pauseImmediate(() => this.resume(window.prompt(msg) || ''));
-        },
+        send: (payload) => config.ws.send(JSON.stringify(payload)),
         setFilterAndGet: function (filter) {
             returnFilter = filter;
             return (Date.now() > lastUpdate + 100) ? this.pauseAndSend({}) : gets.returnVal();
@@ -202,17 +202,17 @@ function robotLibrary(config) {
         },
         _snapPosition: () => {
             let x = self.pX, y = self.pY;
-            x = 400 * ((x < 0) ? Math.floor(Math.ceil(x / 200) / 2) :
-                Math.ceil(Math.floor(x / 200) / 2));
-            y = (y < 0) ? ((400 * Math.ceil(y / 400)) - 200) :
-                ((400 * Math.floor(y / 400)) + 200);
+            x = 500 * ((x < 0) ? Math.floor(Math.ceil(x / 250) / 2) :
+                Math.ceil(Math.floor(x / 250) / 2));
+            y = 500 * ((y < 0) ? Math.floor(Math.ceil(y / 250) / 2) :
+                Math.ceil(Math.floor(y / 250) / 2));
             return [x, y];
         },
         botNearby: (id) => {
             checks.id() || checks.id(id);
             return commsExec.setFilterAndGet([() => {
                     const bot = gets.bot(id);
-                    return false;
+                    return tag.distance(bot.pX, bot.pY) < 800;
                 }]);
         },
         moveForward: function () {
@@ -221,30 +221,30 @@ function robotLibrary(config) {
             let [x, y] = this._snapPosition();
             if (theta < 0) {
                 if (theta > Math.PI / -4) {
-                    x += 400;
+                    x += 500;
                 }
                 else if (theta > 3 * Math.PI / -4) {
-                    y -= 400;
+                    y -= 500;
                 }
                 else if (theta > 5 * Math.PI / -4) {
-                    x -= 400;
+                    x -= 500;
                 }
                 else {
-                    y += 400;
+                    y += 500;
                 }
             }
             else {
                 if (theta < Math.PI / 4) {
-                    x += 400;
+                    x += 500;
                 }
                 else if (theta < 3 * Math.PI / 4) {
-                    y += 400;
+                    y += 500;
                 }
                 else if (theta < 5 * Math.PI / 4) {
-                    x -= 400;
+                    x -= 500;
                 }
                 else {
-                    y -= 400;
+                    y -= 500;
                 }
             }
             [x, y] = checks.args(x, y, 0, 0);

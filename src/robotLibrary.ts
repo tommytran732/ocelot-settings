@@ -9,7 +9,8 @@ function robotLibrary(config: any) {
       returnFilter: any[] = [],
       sslVisionId: number = -1;
 
-  const MIN_X: number = -1700, MAX_X: number = 1700, MIN_Y: number = -1100, MAX_Y: number = 1100,
+  // Field is 2400 x 3600, though carpet is a bit short in X direction.
+  const MIN_X: number = -1700, MAX_X: number = 1700, MIN_Y: number = -1200, MAX_Y: number = 1200,
         MIN_POST: number = -400, MAX_POST: number = 400,
         mQ: object[] = [], // Message queue for batching messages in a single pause-resume cycle.
         angles: any = {
@@ -140,7 +141,10 @@ function robotLibrary(config: any) {
           }
         },
         commsExec: any = { // Communications & Execution.
-          send: (payload: object) => config.ws.send(JSON.stringify(payload)),
+          pauseAndPrompt: function(msg: string) {
+            return gets.runnerResult().runner.pauseImmediate(() =>
+              this.resume(window.prompt(msg) || ''));
+          },
           pauseAndSend: function(payload: object) {
             return gets.runnerResult().runner.pauseImmediate(() => this.send(payload));
           },
@@ -168,10 +172,7 @@ function robotLibrary(config: any) {
               runnerResult.onStopped();
             }
           },
-          pauseAndPrompt: function(msg: string) {
-            return gets.runnerResult().runner.pauseImmediate(() =>
-              this.resume(window.prompt(msg) || ''));
-          },
+          send: (payload: object) => config.ws.send(JSON.stringify(payload)),
           setFilterAndGet: function(filter: any[]) {
             returnFilter = filter;
             return (Date.now() > lastUpdate + 100) ? this.pauseAndSend({}) : gets.returnVal();
@@ -213,11 +214,11 @@ function robotLibrary(config: any) {
             let x: number = self.pX,
                 y: number = self.pY;
 
-            x = 400 * ((x < 0) ? Math.floor(Math.ceil(x / 200) / 2) :
-                                 Math.ceil(Math.floor(x / 200) / 2));
+            x = 500 * ((x < 0) ? Math.floor(Math.ceil(x / 250) / 2) :
+                                 Math.ceil(Math.floor(x / 250) / 2));
 
-            y = (y < 0) ? ((400 * Math.ceil(y / 400)) - 200) :
-                          ((400 * Math.floor(y / 400)) + 200);
+            y = 500 * ((y < 0) ? Math.floor(Math.ceil(y / 250) / 2) :
+                                 Math.ceil(Math.floor(y / 250) / 2));
 
             return [x, y];
           },
@@ -227,7 +228,7 @@ function robotLibrary(config: any) {
             return commsExec.setFilterAndGet([() => {
               const bot: any = gets.bot(id);
 
-              return false; // TODO
+              return tag.distance(bot.pX, bot.pY) < 800;
             }]);
           },
           moveForward: function() {
@@ -239,23 +240,23 @@ function robotLibrary(config: any) {
 
             if (theta < 0) {
               if (theta > Math.PI / -4) {
-                x += 400;
+                x += 500;
               } else if (theta > 3 * Math.PI / -4) {
-                y -= 400;
+                y -= 500;
               } else if (theta > 5 * Math.PI / -4) {
-                x -= 400;
+                x -= 500;
               } else {
-                y += 400;
+                y += 500;
               }
             } else {
               if (theta < Math.PI / 4) {
-                x += 400;
+                x += 500;
               } else if (theta <  3 * Math.PI / 4) {
-                y += 400;
+                y += 500;
               } else if (theta <  5 * Math.PI / 4) {
-                x -= 400;
+                x -= 500;
               } else {
-                y -= 400;
+                y -= 500;
               }
             }
 
