@@ -113,7 +113,7 @@ function robotLibrary(config: any) {
           },
           returnVal: function() {
             if (returnFilter.length) {
-              let val: number;
+              let val: number | boolean;
 
               if (returnFilter[0] === true) {
                 checks.id(returnFilter[1]);
@@ -220,6 +220,15 @@ function robotLibrary(config: any) {
                           ((400 * Math.floor(y / 400)) + 200);
 
             return [x, y];
+          },
+          botNearby: (id: number) => {
+            checks.id() || checks.id(id);
+
+            return commsExec.setFilterAndGet([() => {
+              const bot: any = gets.bot(id);
+
+              return false; // TODO
+            }]);
           },
           moveForward: function() {
             checks.id();
@@ -485,6 +494,7 @@ function robotLibrary(config: any) {
     getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
     getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
     wait: (time: number) => commsExec.pauseWaitAndSend(time),
+    monsterNearby: (id: number) => maze.botNearby(id),
     moveForward: () => maze.moveForward(),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),
@@ -510,8 +520,8 @@ function robotLibrary(config: any) {
     moveByX: (x: number) => tag.move(x, 0, 0, true),
     moveByY: (y: number) => tag.move(0, y, 0, true),
     turnBy: (theta: number) => tag.move(0, 0, angles.toRadians(theta), true),
-    projectX: (id: number, time: number) => tag.project(id, time, true),
-    projectY: (id: number, time: number) => tag.project(id, time),
+    predictX: (id: number, time: number) => tag.project(id, time, true),
+    predictY: (id: number, time: number) => tag.project(id, time),
     turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
     dribble: () => soccer.dribble(),
     shoot: () => soccer.shoot(),

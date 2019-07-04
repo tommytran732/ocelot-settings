@@ -208,6 +208,13 @@ function robotLibrary(config) {
                 ((400 * Math.floor(y / 400)) + 200);
             return [x, y];
         },
+        botNearby: (id) => {
+            checks.id() || checks.id(id);
+            return commsExec.setFilterAndGet([() => {
+                    const bot = gets.bot(id);
+                    return false;
+                }]);
+        },
         moveForward: function () {
             checks.id();
             const theta = checks.args(0, 0, self.pTheta, 0)[2];
@@ -435,6 +442,7 @@ function robotLibrary(config) {
         getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
         getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
         wait: (time) => commsExec.pauseWaitAndSend(time),
+        monsterNearby: (id) => maze.botNearby(id),
         moveForward: () => maze.moveForward(),
         turnLeft: () => maze.turn(0),
         turnRight: () => maze.turn(1),
@@ -460,8 +468,8 @@ function robotLibrary(config) {
         moveByX: (x) => tag.move(x, 0, 0, true),
         moveByY: (y) => tag.move(0, y, 0, true),
         turnBy: (theta) => tag.move(0, 0, angles.toRadians(theta), true),
-        projectX: (id, time) => tag.project(id, time, true),
-        projectY: (id, time) => tag.project(id, time),
+        predictX: (id, time) => tag.project(id, time, true),
+        predictY: (id, time) => tag.project(id, time),
         turnAroundBall: (theta) => soccer.rotate(angles.toRadians(theta)),
         dribble: () => soccer.dribble(),
         shoot: () => soccer.shoot(),
