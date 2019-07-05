@@ -1,1 +1,2 @@
-const r = require('robotLibrary');
+let robot = require('robotLibrary');
+robot.setId(0);

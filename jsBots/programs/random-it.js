@@ -1,8 +1,8 @@
 let robot = require('robotLibrary');
 
-const myId = 0;
-const opponentId = 1;
-const t = 1;
+let myId = 0;
+let opponentId = 1;
+let t = 1;
 
 robot.setId(myId);
 
