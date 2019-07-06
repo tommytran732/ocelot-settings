@@ -231,6 +231,11 @@ function robotLibrary(config: any) {
               return tag.distance(bot.pX, bot.pY) < 800;
             }]);
           },
+          collides: (obsX: number, obsY: number, x1: number, y1: number,
+                     x2OrY2: number, isX: boolean) => {
+            return isX ? ((x1 - obsX) * (x2OrY2 - obsX) <= 0 && y1 === obsY) :
+              ((y1 - obsY) * (x2OrY2 - obsY) <= 0 && x1 === obsX);
+          },
           moveForward: function() {
             checks.id();
 
@@ -499,6 +504,10 @@ function robotLibrary(config: any) {
     moveForward: () => maze.moveForward(),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),
+    collidesX: (obsX: number, obsY: number, x1: number, y1: number, x2: number) =>
+      maze.collides(obsX, obsY, x1, y1, x2, true),
+    collidesY: (obsX: number, obsY: number, x1: number, y1: number, y2: number) =>
+      maze.collides(obsX, obsY, x1, y1, y2, false),
     aimLeft: () => pk.aim(Direction.Left),
     aimRight: () => pk.aim(Direction.Right),
     aimCenter: () => pk.aim(Direction.Center),
