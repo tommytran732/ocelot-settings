@@ -435,6 +435,7 @@ function robotLibrary(config) {
             sslVisionId = id;
             return commsExec.pauseWaitAndSend(1);
         },
+        getTime: () => Date.now(),
         getPosX: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pX']),
         getPosY: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pY']),
         getPosAngle: (id = sslVisionId) => commsExec.setFilterAndGet([true, id, 'pTheta']),
