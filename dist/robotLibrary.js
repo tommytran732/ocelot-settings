@@ -208,20 +208,18 @@ function robotLibrary(config) {
                 Math.ceil(Math.floor(y / 250) / 2));
             return [x, y];
         },
-        getMonsterXCell: (id) => {
+        getBotXCell: (id = sslVisionId) => {
             checks.id() || checks.id(id);
             return commsExec.setFilterAndGet([() => {
                     const bot = gets.bot(id);
-                    const x = Math.floor((bot.pX + 250) / 500);
-                    return x;
+                    return Math.floor((bot.pX + 250) / 500);
                 }]);
         },
-        getMonsterYCell: (id) => {
+        getBotYCell: (id = sslVisionId) => {
             checks.id() || checks.id(id);
             return commsExec.setFilterAndGet([() => {
                     const bot = gets.bot(id);
-                    const y = Math.floor((bot.pY + 250) / 500);
-                    return y;
+                    return Math.floor((bot.pY + 250) / 500);
                 }]);
         },
         botNearby: (id) => {
@@ -235,21 +233,19 @@ function robotLibrary(config) {
             return isX ? ((x1 - obsX) * (x2OrY2 - obsX) <= 0 && y1 === obsY) :
                 ((y1 - obsY) * (x2OrY2 - obsY) <= 0 && x1 === obsX);
         },
-        moveByXCells: function (n) {
+        moveByXCells: (n) => {
             checks.id();
             const theta = checks.args(0, 0, self.pTheta, 0)[2];
             let [x, y] = this._snapPosition();
-            const dist = 500 * n;
-            x = x + dist;
+            x = x + (500 * n);
             [x, y] = checks.args(x, y, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
         },
-        moveByYCells: function (n) {
+        moveByYCells: (n) => {
             checks.id();
             const theta = checks.args(0, 0, self.pTheta, 0)[2];
             let [x, y] = this._snapPosition();
-            const dist = 500 * n;
-            y = y + dist;
+            y = y + (500 * n);
             [x, y] = checks.args(x, y, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
         },
@@ -481,11 +477,11 @@ function robotLibrary(config) {
         getBallVelX: () => commsExec.setFilterAndGet([false, -1, 'vX']),
         getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
         wait: (time) => commsExec.pauseWaitAndSend(time),
+        getMyXCell: () => maze.getBotXCell(),
+        getMyYCell: () => maze.getBotYCell(),
+        getMonsterXCell: (id) => maze.getBotXCell(id),
+        getMonsterYCell: (id) => maze.getBotYCell(id),
         monsterNearby: (id) => maze.botNearby(id),
-        getMonsterXCell: (id) => maze.getMonsterXCell(id),
-        getMonsterYCell: (id) => maze.getMonsterYCell(id),
-        getMyXCell: () => maze.getMonsterXCell(sslVisionId),
-        getMyYCell: () => maze.getMonsterYCell(sslVisionId),
         moveForward: () => maze.moveForward(),
         moveByXCells: (n) => maze.moveByXCells(n),
         moveByYCells: (n) => maze.moveByYCells(n),
