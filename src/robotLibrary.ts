@@ -536,6 +536,8 @@ function robotLibrary(config: any) {
     monsterNearby: (id: number) => maze.botNearby(id),
     getMonsterXCell: (id: number) => maze.getMonsterXCell(id),
     getMonsterYCell: (id: number) => maze.getMonsterYCell(id),
+    getMyXCell: (id: number) => maze.getMonsterXCell(id),
+    getMyYCell: (id: number) => maze.getMonsterYCell(id),
     moveForward: () => maze.moveForward(),
     moveByXCells: () => maze.moveByXCells(),
     moveByYCells: () => maze.moveByYCells(),
