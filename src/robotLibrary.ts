@@ -252,7 +252,6 @@ function robotLibrary(config: any) {
             return isX ? ((x1 - obsX) * (x2OrY2 - obsX) <= 0 && y1 === obsY) :
               ((y1 - obsY) * (x2OrY2 - obsY) <= 0 && x1 === obsX);
           },
-
           moveByXCells: function(n: number) {
             checks.id();
             const theta: number = checks.args(0, 0, self.pTheta, 0)[2];
@@ -261,7 +260,6 @@ function robotLibrary(config: any) {
             [x, y] = checks.args(x + dist, y, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
           },
-
           moveByYCells: function(n: number) {
             checks.id();
             const theta: number = checks.args(0, 0, self.pTheta, 0)[2];
@@ -270,7 +268,6 @@ function robotLibrary(config: any) {
             [x, y] = checks.args(x , y + dist, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
           },
-
           moveForward: function() {
             checks.id();
 
