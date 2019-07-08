@@ -541,8 +541,8 @@ function robotLibrary(config: any) {
     getMyXCell: () => maze.getMonsterXCell(sslVisionId),
     getMyYCell: () => maze.getMonsterYCell(sslVisionId),
     moveForward: () => maze.moveForward(),
-    moveByXCells: () => maze.moveByXCells(),
-    moveByYCells: () => maze.moveByYCells(),
+    moveByXCells: (n: number) => maze.moveByXCells(n),
+    moveByYCells: (n: number) => maze.moveByYCells(n),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),
     collidesX: (obsX: number, obsY: number, x1: number, y1: number, x2: number) =>
