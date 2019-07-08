@@ -481,6 +481,7 @@ function robotLibrary(config) {
         wait: (time) => commsExec.pauseWaitAndSend(time),
         monsterNearby: (id) => maze.botNearby(id),
         getMonsterXCell: (id) => maze.getMonsterXCell(id),
+        getMonsterYCell: (id) => maze.getMonsterYCell(id),
         moveForward: () => maze.moveForward(),
         moveByXCells: () => maze.moveByXCells(),
         moveByYCells: () => maze.moveByYCells(),
