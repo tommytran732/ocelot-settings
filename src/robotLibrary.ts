@@ -222,6 +222,22 @@ function robotLibrary(config: any) {
 
             return [x, y];
           },
+          getMonsterXCell: (id: number) => {
+            checks.id() || checks.id(id);
+            return commsExec.setFilterAndGet([() => {
+              const bot: any = gets.bot(id);
+              const x = Math.floor((bot.pX + 250) / 500);
+              return x;
+            }]);
+          },
+          getMonsterYCell: (id: number) => {
+            checks.id() || checks.id(id);
+            return commsExec.setFilterAndGet([() => {
+              const bot: any = gets.bot(id);
+              const y = Math.floor((bot.pY + 250) / 500);
+              return y;
+            }]);
+          },
           botNearby: (id: number) => {
             checks.id() || checks.id(id);
 
@@ -236,6 +252,25 @@ function robotLibrary(config: any) {
             return isX ? ((x1 - obsX) * (x2OrY2 - obsX) <= 0 && y1 === obsY) :
               ((y1 - obsY) * (x2OrY2 - obsY) <= 0 && x1 === obsX);
           },
+
+          moveByXCells: function(n: number) {
+            checks.id();
+            const theta: number = checks.args(0, 0, self.pTheta, 0)[2];
+            let [x, y]: [number, number] = this._snapPosition();
+            const dist = 500 * n;
+            [x, y] = checks.args(x + dist, y, 0, 0);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
+          },
+
+          moveByYCells: function(n: number) {
+            checks.id();
+            const theta: number = checks.args(0, 0, self.pTheta, 0)[2];
+            let [x, y]: [number, number] = this._snapPosition();
+            const dist = 500 * n;
+            [x, y] = checks.args(x , y + dist, 0, 0);
+            return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
+          },
+
           moveForward: function() {
             checks.id();
 
@@ -502,7 +537,10 @@ function robotLibrary(config: any) {
     getBallVelY: () => commsExec.setFilterAndGet([false, -1, 'vY']),
     wait: (time: number) => commsExec.pauseWaitAndSend(time),
     monsterNearby: (id: number) => maze.botNearby(id),
+    getMonsterXCell: (id: number) => maze.getMonsterXCell(id),
     moveForward: () => maze.moveForward(),
+    moveByXCells: () => maze.moveByXCells(),
+    moveByYCells: () => maze.moveByYCells(),
     turnLeft: () => maze.turn(Direction.Left),
     turnRight: () => maze.turn(Direction.Right),
     collidesX: (obsX: number, obsY: number, x1: number, y1: number, x2: number) =>
