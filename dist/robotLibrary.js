@@ -240,7 +240,8 @@ function robotLibrary(config) {
             const theta = checks.args(0, 0, self.pTheta, 0)[2];
             let [x, y] = this._snapPosition();
             const dist = 500 * n;
-            [x, y] = checks.args(x + dist, y, 0, 0);
+            x = x + dist;
+            [x, y] = checks.args(x, y, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
         },
         moveByYCells: function (n) {
@@ -248,7 +249,8 @@ function robotLibrary(config) {
             const theta = checks.args(0, 0, self.pTheta, 0)[2];
             let [x, y] = this._snapPosition();
             const dist = 500 * n;
-            [x, y] = checks.args(x, y + dist, 0, 0);
+            y = y + dist;
+            [x, y] = checks.args(x, y, 0, 0);
             return commsExec.pauseAndSend({ sslVisionId, x, y, theta });
         },
         moveForward: function () {
