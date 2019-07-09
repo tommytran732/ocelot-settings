@@ -49,6 +49,15 @@ function robotLibrary(config: any) {
 
             return [x, y, theta, time < 0 ? 0 : time];
           },
+          catchBall: () => {
+            // Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1
+            if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
+              throw Error('Ball is moving to slow.');
+            } else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
+                Math.pow(world.pY - self.pY, 2)) < (21 / 100)) {
+              throw Error('Robot is too close to ball.');
+            }
+          },
           bounds: () => {
             if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
                 world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110 ) {
@@ -443,6 +452,11 @@ function robotLibrary(config: any) {
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
+          catch: () => {
+            checks.id() || checks.catchBall();
+
+            return commsExec.pauseAndSend({ sslVisionId, catchBall: true });
+          },
           dribble: function(kick: number = 0) {
             this._align(kick);
             mQ.push({ sslVisionId, _fill: this._fill });
@@ -574,6 +588,7 @@ function robotLibrary(config: any) {
     predictX: (id: number, time: number) => tag.project(id, time, true),
     predictY: (id: number, time: number) => tag.project(id, time),
     turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
+    catch: () => soccer.catchBall(),
     dribble: () => soccer.dribble(),
     shoot: () => soccer.shoot(),
     trackPosition: (id: number) => soccer.trackPosition(id),
