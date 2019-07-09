@@ -42,7 +42,7 @@ function robotLibrary(config) {
             return [x, y, theta, time < 0 ? 0 : time];
         },
         catchBall: () => {
-            if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
+            if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 1) {
                 throw Error('Ball is moving to slow.');
             }
             else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
