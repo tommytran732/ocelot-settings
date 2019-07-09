@@ -51,12 +51,15 @@ function robotLibrary(config: any) {
           },
           catchBall: () => {
             // Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1
-            // if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
-            //   throw Error('Ball is moving to slow.');
-            // } else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
-            //     Math.pow(world.pY - self.pY, 2)) < (21 / 100)) {
-            //   throw Error('Robot is too close to ball.');
-            // }
+            if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
+              console.log('Too slow ball vX: ', world.vX, ' vY: ', world.vY); // tslint:disable-line
+              throw Error('Ball is moving to slow.');
+            } else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
+                Math.pow(world.pY - self.pY, 2)) < (21 / 100)) {
+              console.log('Too close ball pX: ', world.pX, ' pY: ', world.pY); // tslint:disable-line
+              console.log('Too close self pX: ', self.pX, ' pY: ', self.pY); // tslint:disable-line
+              throw Error('Robot is too close to ball.');
+            }
           },
           bounds: () => {
             if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
