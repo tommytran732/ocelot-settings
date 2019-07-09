@@ -452,7 +452,7 @@ function robotLibrary(config: any) {
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
-          catch: () => {
+          catchBall: () => {
             checks.id() || checks.catchBall();
 
             return commsExec.pauseAndSend({ sslVisionId, catchBall: true });
@@ -588,7 +588,7 @@ function robotLibrary(config: any) {
     predictX: (id: number, time: number) => tag.project(id, time, true),
     predictY: (id: number, time: number) => tag.project(id, time),
     turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
-    catch: () => soccer.catchBall(),
+    catchBall: () => soccer.catchBall(),
     dribble: () => soccer.dribble(),
     shoot: () => soccer.shoot(),
     trackPosition: (id: number) => soccer.trackPosition(id),
