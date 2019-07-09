@@ -52,12 +52,9 @@ function robotLibrary(config: any) {
           catchBall: () => {
             // Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1
             if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
-              console.log('Too slow ball vX: ', world.vX, ' vY: ', world.vY); // tslint:disable-line
               throw Error('Ball is moving to slow.');
             } else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
                 Math.pow(world.pY - self.pY, 2)) < (21 / 100)) {
-              console.log('Too close ball pX: ', world.pX, ' pY: ', world.pY); // tslint:disable-line
-              console.log('Too close self pX: ', self.pX, ' pY: ', self.pY); // tslint:disable-line
               throw Error('Robot is too close to ball.');
             }
           },
@@ -455,6 +452,21 @@ function robotLibrary(config: any) {
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
+          canCatch: () => {
+            checks.id();
+
+            return commsExec.setFilterAndGet([() => {
+              let catchable: boolean = true;
+
+              try {
+                checks.catchBall();
+              } catch (e) {
+                catchable = false;
+              }
+
+              return catchable;
+            }]);
+          },
           catchBall: () => {
             checks.id() || checks.catchBall();
 
@@ -591,6 +603,7 @@ function robotLibrary(config: any) {
     predictX: (id: number, time: number) => tag.project(id, time, true),
     predictY: (id: number, time: number) => tag.project(id, time),
     turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
+    canCatch: () => soccer.canCatch(),
     catchBall: () => soccer.catchBall(),
     dribble: () => soccer.dribble(),
     shoot: () => soccer.shoot(),
