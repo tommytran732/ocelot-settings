@@ -49,6 +49,12 @@ function robotLibrary(config: any) {
 
             return [x, y, theta, time < 0 ? 0 : time];
           },
+          bounds: () => {
+            if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
+                world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110) {
+              throw Error('Ball out of bounds.');
+            }
+          },
           catchBall: () => {
             // Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1
             if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
@@ -56,12 +62,6 @@ function robotLibrary(config: any) {
             } else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
                 Math.pow(world.pY - self.pY, 2)) < 100) {
               throw Error('Robot is too close to ball.');
-            }
-          },
-          bounds: () => {
-            if (world.pX < MIN_X - 110 || world.pX > MAX_X + 110 ||
-                world.pY < MIN_Y - 110 || world.pY > MAX_Y + 110 ) {
-              throw Error('Ball out of bounds.');
             }
           },
           direction: function() {
@@ -96,6 +96,11 @@ function robotLibrary(config: any) {
               throw Error('No data found; make sure your simulator is running.');
             } else {
               return msg;
+            }
+          },
+          vel: () => {
+            if ((Math.abs(world.vX) + Math.abs(world.vY)) > 1) {
+              throw Error('Ball is moving too fast.');
             }
           }
         },
@@ -452,6 +457,7 @@ function robotLibrary(config: any) {
             checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
+          angleFrom: (botX, botY, ballX, ballY) => Math.atan2(ballY - botY, ballX - botX) * (180 / Math.PI),
           canCatch: () => {
             checks.id();
 
@@ -479,7 +485,7 @@ function robotLibrary(config: any) {
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           },
           rotate: (theta: number) => {
-            checks.id() || checks.dist();
+            checks.id() || checks.dist() || checks.vel();
             theta = checks.args(0, 0, theta, 0)[2];
 
             return commsExec.pauseAndSend({ sslVisionId, dssBall: true,
@@ -603,6 +609,8 @@ function robotLibrary(config: any) {
     predictX: (id: number, time: number) => tag.project(id, time, true),
     predictY: (id: number, time: number) => tag.project(id, time),
     turnAroundBall: (theta: number) => soccer.rotate(angles.toRadians(theta)),
+    angleFrom: (botX: number, botY: number, ballX: number, ballY: number) =>
+      soccer.angleFrom(botX, botY, ballX, ballY),
     canCatch: () => soccer.canCatch(),
     catchBall: () => soccer.catchBall(),
     dribble: () => soccer.dribble(),
