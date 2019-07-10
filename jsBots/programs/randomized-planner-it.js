@@ -7,8 +7,8 @@ let t = 1;
 robot.setId(myId);
 
 while (true) {
-  let predX = robot.projectX(opponentId, t);
-  let predY = robot.projectY(opponentId, t);
+  let predX = robot.predictX(opponentId, t);
+  let predY = robot.predictY(opponentId, t);
   let bestD = 0;
   let bestX = 0;
   let bestY = 0;
