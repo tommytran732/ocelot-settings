@@ -454,7 +454,8 @@ function robotLibrary(config: any) {
             checks.bounds();
             checks.dist();
             checks.direction();
-            checks.dist() && mQ.push({ sslVisionId, _fill: this._fill });
+            checks.dist();
+            mQ.push({ sslVisionId, _fill: this._fill });
             mQ.push({ sslVisionId, kick });
           },
           angleFrom: (botX, botY, ballX, ballY) => Math.atan2(ballY - botY, ballX - botX) * (180 / Math.PI),
