@@ -49,7 +49,7 @@ function robotLibrary(config) {
         },
         catchBall: () => {
             if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
-                throw Error('Ball is moving to slow.');
+                throw Error('Ball is moving too slow.');
             }
             else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
                 Math.pow(world.pY - self.pY, 2)) < 100) {
@@ -435,7 +435,7 @@ function robotLibrary(config) {
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));
         },
         rotate: (theta) => {
-            checks.id() || checks.dist() || checks.vel();
+            checks.id() || checks.vel() || checks.dist();
             theta = checks.args(0, 0, theta, 0)[2];
             return commsExec.pauseAndSend({ sslVisionId, dssBall: true,
                 x: world.pX + (120 * Math.cos(theta)),

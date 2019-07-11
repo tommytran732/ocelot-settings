@@ -58,7 +58,7 @@ function robotLibrary(config: any) {
           catchBall: () => {
             // Math.abs(world.vX) > 0.1 || Math.abs(world.vY) > 0.1
             if (Math.sqrt(Math.pow(world.vX, 2) + Math.pow(world.vY, 2)) < 100) {
-              throw Error('Ball is moving to slow.');
+              throw Error('Ball is moving too slow.');
             } else if (Math.sqrt(Math.pow(world.pX - self.pX, 2) +
                 Math.pow(world.pY - self.pY, 2)) < 100) {
               throw Error('Robot is too close to ball.');
@@ -486,7 +486,7 @@ function robotLibrary(config: any) {
             return commsExec.pauseAndSend(gets.payload(mQ.shift()));
           },
           rotate: (theta: number) => {
-            checks.id() || checks.dist() || checks.vel();
+            checks.id() || checks.vel() || checks.dist();
             theta = checks.args(0, 0, theta, 0)[2];
 
             return commsExec.pauseAndSend({ sslVisionId, dssBall: true,
