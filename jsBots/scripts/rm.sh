@@ -1,2 +1,2 @@
 #!/bin/bash
-[[ -z $1 ]] || gsutil -m rm gs://ocelot-student-files/ocelot-*/$1
+[[ -z $1 ]] || gsutil -m rm gs://ocelot-student-files/ocelot-*/"$1"
