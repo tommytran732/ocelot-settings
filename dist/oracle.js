@@ -22,7 +22,7 @@ function oracle(config) {
         }
         return -1;
     }
-    return {
+    const obj = {
         hire: (comp, cand) => {
             return { company: comp, candidate: cand };
         },
@@ -36,14 +36,14 @@ function oracle(config) {
                 if (!wasHired[preferredCandidate]) {
                     wasHired[preferredCandidate] = true;
                     hasHired[nextCompany] = true;
-                    hires.push(this.hire(nextCompany, preferredCandidate));
+                    hires.push(obj.hire(nextCompany, preferredCandidate));
                 }
                 else {
                     const competitor = getCompany(preferredCandidate, hires);
                     if (prefers(nextCompany, competitor, preferredCandidate, candidates)) {
                         unHire(competitor, hires, hasHired);
                         hasHired[nextCompany] = true;
-                        hires.push(this.hire(nextCompany, preferredCandidate));
+                        hires.push(obj.hire(nextCompany, preferredCandidate));
                     }
                 }
                 ++proposalCounts[nextCompany];
@@ -53,7 +53,7 @@ function oracle(config) {
         },
         chaff1: function (companies) {
             return companies.reduce((acc, x) => {
-                acc.hires.push(this.hire(acc.n, acc.n));
+                acc.hires.push(obj.hire(acc.n, acc.n));
                 ++acc.n;
                 return acc;
             }, {
@@ -62,4 +62,5 @@ function oracle(config) {
             }).hires;
         }
     };
+    return obj;
 }

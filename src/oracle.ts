@@ -34,7 +34,7 @@ function oracle(config) {
     return -1;
   }
 
-  return {
+  const obj = {
     hire: (comp: any, cand: any) => {
       return { company: comp, candidate: cand };
     },
@@ -55,14 +55,14 @@ function oracle(config) {
           // Candidate was free
           wasHired[preferredCandidate] = true;
           hasHired[nextCompany] = true;
-          hires.push(this.hire(nextCompany, preferredCandidate));
+          hires.push(obj.hire(nextCompany, preferredCandidate));
         } else {
           // Candidate has already been hired
           const competitor = getCompany(preferredCandidate, hires);
           if (prefers(nextCompany, competitor, preferredCandidate, candidates)) {
             unHire(competitor, hires, hasHired);
             hasHired[nextCompany] = true;
-            hires.push(this.hire(nextCompany, preferredCandidate));
+            hires.push(obj.hire(nextCompany, preferredCandidate));
           }
         }
         ++proposalCounts[nextCompany];
@@ -73,7 +73,7 @@ function oracle(config) {
     },
     chaff1: function(companies: any) {
       return companies.reduce((acc: any, x: any) => {
-        acc.hires.push(this.hire(acc.n, acc.n));
+        acc.hires.push(obj.hire(acc.n, acc.n));
         ++acc.n;
         return acc;
       }, {
@@ -82,4 +82,5 @@ function oracle(config) {
       }).hires;
     }
   };
+  return obj;
 }
