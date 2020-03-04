@@ -201,7 +201,7 @@ function oracle(config) {
         updateHires(proposal.offer);
         ++currIterations;
       }
-      return {trace: trace, out: hires};
+      return {trace: config.stopifyArray(trace), out: config.stopifyArray(hires)};
     };
   }
 
@@ -252,7 +252,7 @@ function oracle(config) {
         n: 0
       }).hires;
     },
-    traceWheat: traceCode(wheatPrefers),
+    traceWheat1: traceCode(wheatPrefers),
     traceChaff1: traceCode(chaffPrefers)
   };
   return obj;
