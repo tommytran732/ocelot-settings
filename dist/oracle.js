@@ -26,7 +26,7 @@ function oracle(config) {
         return preferences.indexOf(potentialMatch) < preferences.indexOf(currMatch);
     }
     function chaffPrefers(potentialMatch, currMatch, preferences) {
-        return preferences.indexOf(potentialMatch) < preferences.indexOf(currMatch);
+        return preferences.indexOf(potentialMatch) > preferences.indexOf(currMatch);
     }
     function traceCode(prefersFn) {
         return function (companies, candidates) {

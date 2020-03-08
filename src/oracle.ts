@@ -39,7 +39,7 @@ function oracle(config) {
   }
 
   function chaffPrefers(potentialMatch: number, currMatch: number, preferences: any[]) {
-    return preferences.indexOf(potentialMatch) < preferences.indexOf(currMatch);
+    return preferences.indexOf(potentialMatch) > preferences.indexOf(currMatch);
   }
 
   function traceCode(prefersFn: any) {
@@ -252,6 +252,7 @@ function oracle(config) {
         n: 0
       }).hires;
     },
+
     traceWheat1: traceCode(wheatPrefers),
     traceChaff1: traceCode(chaffPrefers)
   };
