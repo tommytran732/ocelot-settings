@@ -237,9 +237,8 @@ function lib220(config) {
                         runnerResult.value.onStopped();
                     }
                 }
-                const encodedURL = encodeURIComponent(url), baseUrl = (window.location.hostname === 'www.ocelot-ide.org') ?
-                    'https://us-central1-arjunguha-research-group.cloudfunctions.net/paws/' :
-                    'https://us-central1-arjunguha-research-group.cloudfunctions.net/ocelot-beta/', getUrlLink = `${baseUrl}geturl?`, queryURL = `${getUrlLink}url=${encodedURL}&user=${userEmail}&session=${sessionId}`;
+                const encodedURL = encodeURIComponent(url), baseUrl =
+                    'https://ocelotbackend.thientran.io', getUrlLink = `${baseUrl}geturl?`, queryURL = `${getUrlLink}url=${encodedURL}&user=${userEmail}&session=${sessionId}`;
                 fetch(queryURL).then(response => {
                     if (!response.ok) {
                         if (runnerResult.value.isRunning) {
